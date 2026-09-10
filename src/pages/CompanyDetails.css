@@ -1,0 +1,378 @@
+.company-details-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 1400px;
+}
+
+.company-details__not-found,
+.company-details__empty {
+  color: #8a8a92;
+  font-size: 0.88rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ---------------- Header ---------------- */
+.company-details__header {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.1rem;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.company-details__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.company-details__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.company-details__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.company-details__title-row h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+.company-details__meta {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  color: #121214;
+}
+
+.company-details__meta-label {
+  color: #a3a3ab;
+  font-weight: 500;
+  margin-right: 0.3rem;
+}
+
+.company-details__quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.company-details__action-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ---------------- Body layout ---------------- */
+.company-details__body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.company-details__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.company-details__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  position: sticky;
+  top: 1.75rem;
+}
+
+.company-details__card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.1rem;
+  padding: 1.5rem 1.6rem;
+}
+
+.company-details__card h3 {
+  margin: 0 0 1.1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+/* ---------------- Information ---------------- */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.info-block h4 {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a3a3ab;
+}
+
+.info-block ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.87rem;
+  color: #38383d;
+}
+
+.info-block li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-block li svg {
+  width: 15px;
+  height: 15px;
+  color: #8a8a92;
+  flex: none;
+}
+
+.info-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.9rem;
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #f1f1f2;
+}
+
+.info-tiles.field--full {
+  grid-column: 1 / -1;
+}
+
+.info-tiles--flush {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.info-tile {
+  background: #fafafa;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.info-tile__label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a3a3ab;
+}
+
+.info-tile__label svg {
+  width: 13px;
+  height: 13px;
+}
+
+.info-tile__value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+/* ---------------- Contacts tab ---------------- */
+.simple-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.simple-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+/* ---------------- Activity tab ---------------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline__item {
+  display: flex;
+  gap: 0.9rem;
+  position: relative;
+  padding-bottom: 1.4rem;
+}
+
+.timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  background: rgba(100, 72, 244, 0.1);
+  color: var(--primary);
+  position: relative;
+  z-index: 1;
+}
+
+.timeline__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.timeline__icon--system {
+  background: #f1f1f2;
+  color: #8a8a92;
+}
+
+.timeline__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 14.5px;
+  top: 30px;
+  bottom: 0;
+  width: 1.5px;
+  background: #e4e7ec;
+}
+
+.timeline__date {
+  margin: 0 0 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a3a3ab;
+}
+
+.timeline__text {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #121214;
+  padding-top: 0.35rem;
+}
+
+/* ---------------- Rail: Primary Contact ---------------- */
+.primary-contact-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.primary-contact-card__body {
+  min-width: 0;
+}
+
+.primary-contact-card__meta {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #38383d;
+}
+
+.primary-contact-card__meta li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary-contact-card__meta svg {
+  width: 14px;
+  height: 14px;
+  color: #8a8a92;
+  flex: none;
+}
+
+/* ---------------- Rail: Snapshot ---------------- */
+.kv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.kv-list p {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #121214;
+}
+
+@media (max-width: 1080px) {
+  .company-details__body {
+    grid-template-columns: 1fr;
+  }
+
+  .company-details__rail {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .info-grid,
+  .info-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .company-details__heading {
+    flex-direction: column;
+  }
+}

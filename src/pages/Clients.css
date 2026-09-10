@@ -1,0 +1,113 @@
+.clients-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1400px;
+}
+
+/* ---------------- Quick stat tiles ---------------- */
+.clients-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.clients-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.9rem;
+  padding: 0.9rem 1.1rem;
+}
+
+.clients-stat__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.65rem;
+  background: rgba(100, 72, 244, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.clients-stat__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.clients-stat__value {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #121214;
+  line-height: 1.2;
+}
+
+.clients-stat__label {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  color: #8a8a92;
+  font-weight: 500;
+}
+
+/* ---------------- Toolbar ---------------- */
+.clients-search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  max-width: 380px;
+  background: #fafafa;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.clients-search:focus-within {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(100, 72, 244, 0.12);
+}
+
+.clients-search__icon {
+  width: 17px;
+  height: 17px;
+  color: #8a8a92;
+  flex: none;
+}
+
+.clients-search input {
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.86rem;
+  color: #121214;
+  width: 100%;
+}
+
+.clients-search input::placeholder {
+  color: #a3a3ab;
+}
+
+@media (max-width: 900px) {
+  .clients-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .data-table-wrap__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clients-search {
+    max-width: none;
+  }
+}

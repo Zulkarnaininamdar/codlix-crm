@@ -1,0 +1,461 @@
+.tasks-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tasks-page__empty {
+  font-size: 0.85rem;
+  color: #a3a3ab;
+  margin: 0;
+  padding: 0.5rem 0.1rem 0;
+}
+
+/* ---------------- View toggle ---------------- */
+.view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f4f4f5;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.7rem;
+  padding: 0.25rem;
+  flex: none;
+}
+
+.view-toggle__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8a8a92;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.view-toggle__btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.view-toggle__btn:hover {
+  color: #121214;
+}
+
+.view-toggle__btn.is-active {
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 4px 12px -6px rgba(18, 18, 20, 0.25);
+}
+
+/* ---------------- Project timeline ---------------- */
+.project-timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.project-timeline-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.1rem;
+  padding: 1.5rem 1.6rem;
+}
+
+.project-timeline-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.project-timeline-card__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.project-timeline-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.85rem;
+  background: rgba(100, 72, 244, 0.1);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.project-timeline-card__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.project-timeline-card__title h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+.project-timeline-card__title p {
+  margin: 0.25rem 0 0;
+  font-size: 0.83rem;
+  color: #8a8a92;
+}
+
+.project-timeline-card__dot {
+  color: #d4d4d8;
+  margin: 0 0.15rem;
+}
+
+.project-timeline-card__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.project-timeline-card__range {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #8a8a92;
+  white-space: nowrap;
+}
+
+.project-timeline-card__range svg {
+  width: 13px;
+  height: 13px;
+}
+
+.project-timeline-card__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.1rem 0 1.4rem;
+}
+
+.project-timeline-card__progress-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: #f1f1f2;
+  overflow: hidden;
+}
+
+.project-timeline-card__progress-track div {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+}
+
+.project-timeline-card__progress span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b6b73;
+  white-space: nowrap;
+}
+
+/* ---------------- Task timeline (per project) ---------------- */
+.task-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-timeline__item {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 1.1rem;
+}
+
+.task-timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.task-timeline__item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5.5px;
+  top: 16px;
+  bottom: 0;
+  width: 1.5px;
+  background: #e4e7ec;
+}
+
+.task-timeline__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex: none;
+  background: #fff;
+  border: 2.5px solid #d4d4d8;
+  position: relative;
+  z-index: 1;
+}
+
+.task-timeline__item.is-progress .task-timeline__dot {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(100, 72, 244, 0.15);
+}
+
+.task-timeline__item.is-review .task-timeline__dot {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
+.task-timeline__item.is-done .task-timeline__dot {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.task-timeline__card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+  background: #fafafa;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.85rem;
+  padding: 0.9rem 1.05rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.task-timeline__card:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 14px 28px -20px rgba(18, 18, 20, 0.28);
+  transform: translateY(-1px);
+}
+
+.task-timeline__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.task-timeline__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #121214;
+}
+
+.task-timeline__range {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #a3a3ab;
+}
+
+.task-timeline__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.task-timeline__assignee {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #6b6b73;
+  font-weight: 500;
+}
+
+.task-timeline__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.task-timeline__comments {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  color: #a3a3ab;
+  margin-left: auto;
+}
+
+.task-timeline__comments svg {
+  width: 13px;
+  height: 13px;
+}
+
+@media (max-width: 720px) {
+  .project-timeline-card__head {
+    flex-direction: column;
+  }
+
+  .project-timeline-card__meta {
+    align-items: flex-start;
+  }
+}
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.kanban__column {
+  background: #f4f4f5;
+  border-radius: 1rem;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 200px;
+}
+
+.kanban__column-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #38383d;
+  padding: 0 0.2rem;
+}
+
+.kanban__column-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  color: #8a8a92;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+}
+
+.kanban__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.kanban-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.85rem;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.kanban-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: 0 14px 28px -20px rgba(18, 18, 20, 0.28);
+  transform: translateY(-1px);
+}
+
+.kanban-card__title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #121214;
+}
+
+.kanban-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.kanban-card__due {
+  font-size: 0.74rem;
+  color: #8a8a92;
+}
+
+.kanban-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.kanban-card__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kanban-card__comments {
+  font-size: 0.72rem;
+  color: #a3a3ab;
+}
+
+.kanban__empty {
+  font-size: 0.78rem;
+  color: #a3a3ab;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.task-detail__description {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #38383d;
+  line-height: 1.6;
+}
+
+.task-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.task-detail-grid p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #121214;
+}
+
+@media (max-width: 900px) {
+  .kanban {
+    grid-template-columns: repeat(4, 260px);
+  }
+}

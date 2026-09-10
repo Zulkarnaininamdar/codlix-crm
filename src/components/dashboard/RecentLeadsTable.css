@@ -1,0 +1,125 @@
+.recent-leads {
+  overflow-x: auto;
+}
+
+.recent-leads table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.recent-leads thead th {
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #667085;
+  padding: 0.75rem;
+  border-top: 1px solid #f2f4f7;
+  border-bottom: 1px solid #f2f4f7;
+  white-space: nowrap;
+}
+
+.recent-leads thead th:first-child {
+  padding-left: 0;
+}
+
+.recent-leads tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f2f4f7;
+  vertical-align: middle;
+}
+
+.recent-leads tbody td:first-child {
+  padding-left: 0;
+}
+
+.recent-leads tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.recent-leads tbody tr {
+  transition: background 0.15s ease;
+}
+
+.recent-leads tbody tr:hover {
+  background: #fafafa;
+}
+
+.recent-leads__who {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.recent-leads__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.recent-leads__name {
+  margin: 0;
+  font-weight: 600;
+  color: #121214;
+  white-space: nowrap;
+}
+
+.recent-leads__company {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  color: #8a8a92;
+  white-space: nowrap;
+}
+
+.recent-leads__muted {
+  color: #6b6b73;
+  white-space: nowrap;
+}
+
+.recent-leads__value {
+  font-weight: 700;
+  color: #121214;
+  white-space: nowrap;
+}
+
+.recent-leads__stage {
+  display: inline-flex;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.recent-leads__stage--new {
+  background: #f1f1f2;
+  color: #55555c;
+}
+
+.recent-leads__stage--contacted {
+  background: rgba(100, 72, 244, 0.08);
+  color: #7a6bf0;
+}
+
+.recent-leads__stage--qualified {
+  background: rgba(100, 72, 244, 0.14);
+  color: var(--primary);
+}
+
+.recent-leads__stage--proposal {
+  background: rgba(100, 72, 244, 0.22);
+  color: var(--primary-dark);
+}
+
+.recent-leads__stage--won {
+  background: #121214;
+  color: #fff;
+}

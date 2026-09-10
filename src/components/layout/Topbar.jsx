@@ -1,0 +1,197 @@
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  BellIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  UserIcon,
+  LogoutIcon,
+  SettingsIcon,
+} from '../icons/Icons.jsx'
+import './Topbar.css'
+
+const initialNotifications = [
+  {
+    id: 1,
+    message: 'Aarav Shah submitted a new inquiry from your website. Assign to a rep?',
+    read: false,
+  },
+  {
+    id: 2,
+    message: "Your LinkedIn Ads — Q3 Outreach campaign reached 75% of today's budget limit.",
+    read: false,
+  },
+  {
+    id: 3,
+    message: 'Lead #LD-2374 reopened the TechNova proposal twice in the past hour.',
+    read: false,
+  },
+  {
+    id: 4,
+    message: 'Nexa Ltd viewed your proposal 3 times today.',
+    read: true,
+  },
+  {
+    id: 5,
+    message: "Only 2 seats remaining in tomorrow's product demo. Consider sending reminders.",
+    read: true,
+  },
+  {
+    id: 6,
+    message: 'Interest in enterprise plans surged this week. A follow-up email is ready to send.',
+    read: true,
+  },
+]
+
+function useClickOutside(ref, onOutside) {
+  useEffect(() => {
+    function handle(e) {
+      if (ref.current && !ref.current.contains(e.target)) onOutside()
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [ref, onOutside])
+}
+
+function Topbar({ onMenuClick }) {
+  const navigate = useNavigate()
+  const [bellOpen, setBellOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [notifications, setNotifications] = useState(initialNotifications)
+
+  const bellRef = useRef(null)
+  const profileRef = useRef(null)
+
+  useClickOutside(bellRef, () => setBellOpen(false))
+  useClickOutside(profileRef, () => setProfileOpen(false))
+
+  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadNotifications = notifications.filter((n) => !n.read)
+  const previousNotifications = notifications.filter((n) => n.read)
+
+  function markRead(id) {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
+
+  return (
+    <header className="topbar">
+      <button className="topbar__menu-btn" onClick={onMenuClick} aria-label="Toggle menu">
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <div className="topbar__heading">
+        <span className="topbar__heading-dot" />
+        Marketing Department
+      </div>
+
+      <div className="topbar__actions">
+        <div className="topbar__bell" ref={bellRef}>
+          <button
+            className="topbar__icon-btn"
+            onClick={() => setBellOpen((v) => !v)}
+            aria-label="Notifications"
+          >
+            <BellIcon />
+            {unreadCount > 0 && <span className="topbar__badge" />}
+          </button>
+          <div
+            className={`topbar__notif-backdrop${bellOpen ? ' is-open' : ''}`}
+            onClick={() => setBellOpen(false)}
+          />
+
+          <aside
+            className={`topbar__notif-panel${bellOpen ? ' is-open' : ''}`}
+            role="menu"
+            aria-hidden={!bellOpen}
+          >
+            <div className="topbar__notif-header">
+              <h4>Notifications</h4>
+              <button
+                className="topbar__notif-close"
+                onClick={() => setBellOpen(false)}
+                aria-label="Close notifications"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            {notifications.length > 0 ? (
+              <div className="topbar__notif-list">
+                {unreadNotifications.length > 0 && (
+                  <div className="topbar__notif-section">
+                    <span className="topbar__notif-section-label topbar__notif-section-label--unread">
+                      Unread notifications
+                    </span>
+                    {unreadNotifications.map((n) => (
+                      <button
+                        key={n.id}
+                        className="topbar__notif-card topbar__notif-card--unread"
+                        onClick={() => markRead(n.id)}
+                      >
+                        <span className="topbar__notif-card-icon">
+                          <BellIcon />
+                        </span>
+                        <span className="topbar__notif-card-text">{n.message}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {previousNotifications.length > 0 && (
+                  <div className="topbar__notif-section">
+                    <span className="topbar__notif-section-label">Previous notifications</span>
+                    {previousNotifications.map((n) => (
+                      <div key={n.id} className="topbar__notif-card">
+                        <span className="topbar__notif-card-icon">
+                          <BellIcon />
+                        </span>
+                        <span className="topbar__notif-card-text">{n.message}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="topbar__notif-empty">
+                <BellIcon />
+                <p>You're all caught up</p>
+              </div>
+            )}
+
+            <button className="topbar__notif-footer" onClick={() => setBellOpen(false)}>
+              View all notifications
+            </button>
+          </aside>
+        </div>
+
+        <div className="topbar__profile" ref={profileRef}>
+          <button className="topbar__profile-btn" onClick={() => setProfileOpen((v) => !v)}>
+            <span className="topbar__avatar">RS</span>
+            <span className="topbar__profile-info">
+              <span className="topbar__profile-name">Rohan Shah</span>
+              <span className="topbar__profile-role">Sales Manager</span>
+            </span>
+            <ChevronDownIcon className={`topbar__chevron${profileOpen ? ' is-open' : ''}`} />
+          </button>
+          {profileOpen && (
+            <div className="topbar__menu">
+              <button className="topbar__menu-item">
+                <UserIcon className="topbar__menu-icon" /> My Profile
+              </button>
+              <button className="topbar__menu-item">
+                <SettingsIcon className="topbar__menu-icon" /> Settings
+              </button>
+              <button className="topbar__menu-item" onClick={() => navigate('/')}>
+                <LogoutIcon className="topbar__menu-icon" /> Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  )
+}
+
+export default Topbar

@@ -1,0 +1,126 @@
+.proposal-details-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1000px;
+}
+
+.proposal-details__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.proposal-details__header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+.proposal-details__header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.86rem;
+  color: #8a8a92;
+}
+
+.proposal-details__status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: none;
+}
+
+.proposal-status-select {
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #55555c;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.55rem;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.proposal-status-select:hover {
+  border-color: #d4d4d8;
+}
+
+.proposal-status-select:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(100, 72, 244, 0.12);
+}
+
+.proposal-details__card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1.1rem;
+  padding: 1.75rem;
+}
+
+.proposal-details__meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f1f2;
+}
+
+.proposal-details__meta p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #121214;
+}
+
+.proposal-details__section-title {
+  margin: 0 0 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #121214;
+}
+
+.proposal-line-items {
+  border: 1px solid #e4e7ec;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.proposal-details__total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f1f2;
+  font-size: 0.95rem;
+  color: #38383d;
+}
+
+.proposal-details__total strong {
+  font-size: 1.25rem;
+  color: #121214;
+}
+
+.proposal-details__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.proposal-details__empty {
+  color: #8a8a92;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .proposal-details__meta {
+    grid-template-columns: 1fr;
+  }
+}

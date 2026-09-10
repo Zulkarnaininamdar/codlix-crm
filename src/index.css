@@ -1,0 +1,26 @@
+:root {
+  --primary: #6448f4;
+  --primary-dark: #4b32d6;
+  --primary-light: #9a88f8;
+  --ink: #18181b;
+  --ink-muted: #6b6b73;
+  --border: #e7e5e1;
+  --danger: #e5484d;
+  color-scheme: light;
+  font-family: 'Outfit', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}

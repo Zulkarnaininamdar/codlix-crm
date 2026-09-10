@@ -1,0 +1,69 @@
+.stage-tracker {
+  display: flex;
+  width: 100%;
+}
+
+.stage-tracker__seg {
+  flex: 1;
+  position: relative;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.25rem;
+  background: #e4e7ec;
+  color: #8a8a92;
+  font-size: 0.78rem;
+  font-weight: 600;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+  margin-left: -14px;
+  white-space: nowrap;
+}
+
+.stage-tracker__seg span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-tracker__seg:first-child {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+  margin-left: 0;
+}
+
+.stage-tracker__seg:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 14px 50%);
+}
+
+.stage-tracker__seg.is-done {
+  background: #d8d1fc;
+  color: var(--primary-dark);
+}
+
+.stage-tracker__seg.is-current {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.stage-tracker__seg.is-upcoming {
+  background: #f1f1f2;
+  color: #a3a3ab;
+}
+
+@media (max-width: 900px) {
+  .stage-tracker__seg {
+    font-size: 0.68rem;
+    padding: 0 0.6rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .stage-tracker {
+    overflow-x: auto;
+  }
+
+  .stage-tracker__seg {
+    flex: none;
+    width: 130px;
+  }
+}

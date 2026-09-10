@@ -1,0 +1,124 @@
+.form-card {
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+}
+
+.form-section + .form-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f1f1f2;
+}
+
+.form-section__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #121214;
+  margin: 0 0 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-section__title-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(100, 72, 244, 0.1);
+  color: var(--primary);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field--full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #38383d;
+}
+
+.field label .required {
+  color: var(--primary);
+  margin-left: 0.15rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1.5px solid #e4e7ec;
+  border-radius: 0.6rem;
+  background: #fbfbfa;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #121214;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(100, 72, 244, 0.12);
+  background: #fff;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #a3a3ab;
+}
+
+.field__error {
+  font-size: 0.76rem;
+  color: #8a5cf6;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f1f2;
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-card {
+    padding: 1.5rem 1.25rem;
+  }
+}

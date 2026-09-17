@@ -14,6 +14,7 @@ const toneMap = {
   sent: 'soft',
   viewed: 'medium',
   accepted: 'dark',
+  published: 'dark',
   // negative / inactive outcomes
   lost: 'outline',
   rejected: 'outline',

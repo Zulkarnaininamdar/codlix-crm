@@ -1,0 +1,89 @@
+.ig-account-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 1rem;
+  padding: 1.1rem 1.4rem;
+}
+
+.ig-account-card__avatar {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+}
+
+.ig-account-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ig-account-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.ig-account-card__icon {
+  width: 18px;
+  height: 18px;
+  color: var(--primary);
+  flex: none;
+}
+
+.ig-account-card__username {
+  font-weight: 700;
+  color: #121214;
+  font-size: 0.95rem;
+}
+
+.ig-account-card__bio {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: #8a8a92;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ig-account-card__stats {
+  display: flex;
+  gap: 1.6rem;
+  flex: none;
+}
+
+.ig-account-card__stats > div {
+  text-align: center;
+}
+
+.ig-account-card__stats p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #121214;
+}
+
+.ig-account-card__stats span {
+  font-size: 0.72rem;
+  color: #8a8a92;
+}
+
+@media (max-width: 720px) {
+  .ig-account-card {
+    flex-wrap: wrap;
+  }
+
+  .ig-account-card__stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

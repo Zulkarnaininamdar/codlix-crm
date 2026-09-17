@@ -1,0 +1,103 @@
+.plan-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.9rem;
+  padding: 1rem 1.2rem;
+}
+
+.plan-card__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.plan-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.plan-card__title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #121214;
+}
+
+.plan-card__caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: #6b6b73;
+}
+
+.plan-card__hashtags {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  color: var(--primary);
+}
+
+.plan-card__side {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: none;
+}
+
+.plan-card__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #55555c;
+  white-space: nowrap;
+}
+
+.plan-card__date svg {
+  width: 15px;
+  height: 15px;
+}
+
+.plan-card__type {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #8a8a92;
+  background: #f4f4f5;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+}
+
+.plan-card__delete {
+  border: none;
+  background: transparent;
+  color: #8a8a92;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.5rem;
+  display: flex;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.plan-card__delete:hover {
+  background: rgba(229, 72, 77, 0.1);
+  color: var(--danger);
+}
+
+.plan-card__delete svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 640px) {
+  .plan-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .plan-card__side {
+    justify-content: space-between;
+  }
+}

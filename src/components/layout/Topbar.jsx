@@ -8,7 +8,12 @@ import {
   LogoutIcon,
   SettingsIcon,
 } from '../icons/Icons.jsx'
+import { useAuth } from '../../auth/AuthContext.jsx'
 import './Topbar.css'
+
+function initials(name) {
+  return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+}
 
 const initialNotifications = [
   {
@@ -55,6 +60,7 @@ function useClickOutside(ref, onOutside) {
 
 function Topbar({ onMenuClick }) {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [bellOpen, setBellOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [notifications, setNotifications] = useState(initialNotifications)
@@ -83,7 +89,7 @@ function Topbar({ onMenuClick }) {
 
       <div className="topbar__heading">
         <span className="topbar__heading-dot" />
-        Marketing Department
+        {user?.department}
       </div>
 
       <div className="topbar__actions">
@@ -168,10 +174,10 @@ function Topbar({ onMenuClick }) {
 
         <div className="topbar__profile" ref={profileRef}>
           <button className="topbar__profile-btn" onClick={() => setProfileOpen((v) => !v)}>
-            <span className="topbar__avatar">RS</span>
+            <span className="topbar__avatar">{user ? initials(user.name) : ''}</span>
             <span className="topbar__profile-info">
-              <span className="topbar__profile-name">Rohan Shah</span>
-              <span className="topbar__profile-role">Sales Manager</span>
+              <span className="topbar__profile-name">{user?.name}</span>
+              <span className="topbar__profile-role">{user?.roleLabel}</span>
             </span>
             <ChevronDownIcon className={`topbar__chevron${profileOpen ? ' is-open' : ''}`} />
           </button>
@@ -183,7 +189,13 @@ function Topbar({ onMenuClick }) {
               <button className="topbar__menu-item">
                 <SettingsIcon className="topbar__menu-icon" /> Settings
               </button>
-              <button className="topbar__menu-item" onClick={() => navigate('/')}>
+              <button
+                className="topbar__menu-item"
+                onClick={() => {
+                  logout()
+                  navigate('/')
+                }}
+              >
                 <LogoutIcon className="topbar__menu-icon" /> Logout
               </button>
             </div>

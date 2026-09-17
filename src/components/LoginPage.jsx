@@ -1,17 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../assets/codlix-logo.png'
 import MoltenMetal from './MoltenMetal.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
 import './LoginPage.css'
+
+function landingPathFor(role) {
+  return role === 'social-media-manager' ? '/marketing/social' : '/dashboard'
+}
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { user, login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (user) navigate(landingPathFor(user.role), { replace: true })
+  }, [user, navigate])
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -28,9 +38,13 @@ function LoginPage() {
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      // TODO: wire to real authentication endpoint
-      navigate('/dashboard')
-    }, 1200)
+      const account = login(username.trim(), password)
+      if (!account) {
+        setErrors({ form: 'Invalid username or password.' })
+        return
+      }
+      navigate(landingPathFor(account.role))
+    }, 600)
   }
 
   return (
@@ -137,6 +151,8 @@ function LoginPage() {
             <span className="checkbox__box" />
             Remember me
           </label>
+
+          {errors.form && <span className="login-field__error">{errors.form}</span>}
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? <span className="btn-primary__spinner" /> : 'Sign In'}

@@ -151,6 +151,26 @@ export const SettingsIcon = (p) => (
   </svg>
 )
 
+export const InstagramIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+    <circle cx="12" cy="12" r="4.2" />
+    <circle cx="17" cy="7" r="0.9" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+export const HeartIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <path d="M12 20s-7.5-4.6-9.8-9.3C.6 7.2 2.3 4 5.6 4c2 0 3.3 1 4.4 2.4C11.1 5 12.4 4 14.4 4c3.3 0 5 3.2 3.4 6.7C15.5 15.4 12 20 12 20Z" />
+  </svg>
+)
+
+export const CommentIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <path d="M4 5.5h16v11H9.5L5 20v-3.5H4v-11Z" />
+  </svg>
+)
+
 export const SearchIcon = (p) => (
   <svg viewBox="0 0 24 24" {...base} {...p}>
     <circle cx="11" cy="11" r="6.5" />

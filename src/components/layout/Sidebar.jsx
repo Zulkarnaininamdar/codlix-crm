@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import logo from '../../assets/codlix-logo.png'
 import { ChevronDownIcon } from '../icons/Icons.jsx'
-import { navConfig } from './navConfig.js'
+import { navConfig, socialManagerNavConfig } from './navConfig.js'
+import { useAuth } from '../../auth/AuthContext.jsx'
 import './Sidebar.css'
 
 function groupContainsPath(group, pathname) {
@@ -11,9 +12,11 @@ function groupContainsPath(group, pathname) {
 
 function Sidebar() {
   const location = useLocation()
+  const { user } = useAuth()
+  const items = user?.role === 'social-media-manager' ? socialManagerNavConfig : navConfig
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = {}
-    navConfig.forEach((item) => {
+    items.forEach((item) => {
       if (item.type === 'group') {
         initial[item.label] = groupContainsPath(item, location.pathname)
       }
@@ -35,7 +38,7 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar__nav">
-        {navConfig.map((item) => {
+        {items.map((item) => {
           if (item.type === 'link') {
             const Icon = item.icon
             return (
@@ -73,6 +76,7 @@ function Sidebar() {
                     <NavLink
                       key={child.path}
                       to={child.path}
+                      end={child.end}
                       className={({ isActive }) => `sidebar__sublink${isActive ? ' is-active' : ''}`}
                     >
                       <span className="sidebar__sublink-dot" />

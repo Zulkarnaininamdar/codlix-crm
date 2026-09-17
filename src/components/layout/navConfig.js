@@ -8,15 +8,16 @@ import {
   ProposalsIcon,
   CustomersIcon,
   ClientsIcon,
-  ProjectsIcon,
-  TasksIcon,
-  ManagementIcon,
-  EmployeesIcon,
-  ReportsIcon,
+  SocialIcon,
+  AnalyticsIcon,
+  InstagramIcon,
+  NoteIcon,
+  CalendarIcon,
 } from '../icons/Icons.jsx'
 
 export const navConfig = [
   { type: 'link', label: 'Dashboard', path: '/dashboard', icon: DashboardIcon },
+  { type: 'link', label: 'Social Media', path: '/marketing/social', icon: SocialIcon },
   {
     type: 'group',
     label: 'Sales',
@@ -35,22 +36,18 @@ export const navConfig = [
     icon: CustomersIcon,
     children: [{ label: 'Clients', path: '/clients', icon: ClientsIcon }],
   },
+]
+
+export const socialManagerNavConfig = [
   {
     type: 'group',
-    label: 'Projects',
-    icon: ProjectsIcon,
+    label: 'Social Media',
+    icon: SocialIcon,
     children: [
-      { label: 'Projects', path: '/projects', icon: ProjectsIcon },
-      { label: 'Tasks', path: '/tasks', icon: TasksIcon },
-    ],
-  },
-  {
-    type: 'group',
-    label: 'Management',
-    icon: ManagementIcon,
-    children: [
-      { label: 'Employees', path: '/employees', icon: EmployeesIcon },
-      { label: 'Reports', path: '/reports', icon: ReportsIcon },
+      { label: 'Overview', path: '/marketing/social', icon: AnalyticsIcon, end: true },
+      { label: 'Posts', path: '/marketing/social/posts', icon: InstagramIcon },
+      { label: 'Content Planner', path: '/marketing/social/planner', icon: NoteIcon },
+      { label: 'Calendar', path: '/marketing/social/calendar', icon: CalendarIcon },
     ],
   },
 ]

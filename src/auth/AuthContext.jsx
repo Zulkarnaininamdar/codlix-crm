@@ -1,40 +1,72 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { accounts } from '../data/accounts.js'
-
-const STORAGE_KEY = 'codlix-auth-user'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { api, ApiError, getToken, setToken } from '../api/client.js'
 
 const AuthContext = createContext(null)
 
-function loadUser() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : null
-  } catch {
-    return null
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(loadUser)
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [executives, setExecutives] = useState([])
+
+  const loadExecutives = useCallback(async () => {
+    try {
+      setExecutives(await api('/executives'))
+    } catch {
+      setExecutives([])
+    }
+  }, [])
 
   useEffect(() => {
-    if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user))
-    else localStorage.removeItem(STORAGE_KEY)
-  }, [user])
+    if (!getToken()) {
+      setAuthLoading(false)
+      return
+    }
+    api('/auth/me')
+      .then(setUser)
+      .catch(() => setToken(null))
+      .finally(() => setAuthLoading(false))
+  }, [])
 
-  function login(username, password) {
-    const account = accounts.find((a) => a.username === username && a.password === password)
-    if (!account) return null
-    const safeUser = { username: account.username, role: account.role, name: account.name, roleLabel: account.roleLabel, department: account.department }
-    setUser(safeUser)
-    return safeUser
+  useEffect(() => {
+    if (user?.role === 'sales-manager') loadExecutives()
+    else setExecutives([])
+  }, [user, loadExecutives])
+
+  async function login(username, password) {
+    try {
+      const data = await api('/auth/login', { method: 'POST', body: { username, password } })
+      setToken(data.token)
+      setUser(data.user)
+      return { ok: true, user: data.user }
+    } catch (err) {
+      return { ok: false, error: err instanceof ApiError ? err.message : 'Could not reach the server.' }
+    }
   }
 
   function logout() {
+    api('/auth/logout', { method: 'POST' }).catch(() => {})
+    setToken(null)
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>
+  async function addExecutive(payload) {
+    const created = await api('/executives', { method: 'POST', body: payload })
+    await loadExecutives()
+    return created
+  }
+
+  async function setExecutiveActive(username, active) {
+    await api(`/executives/${encodeURIComponent(username)}`, { method: 'PATCH', body: { active } })
+    await loadExecutives()
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{ user, authLoading, login, logout, executives, addExecutive, setExecutiveActive }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

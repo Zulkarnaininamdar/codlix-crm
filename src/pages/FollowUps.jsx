@@ -3,7 +3,9 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import Modal from '../components/common/Modal.jsx'
 import Drawer from '../components/common/Drawer.jsx'
-import { followUps as initialFollowUps, leads, employees } from '../data/mockData.js'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   SearchIcon,
   PlusIcon,
@@ -13,12 +15,17 @@ import {
   MeetingsIcon,
   FollowupsIcon,
   CheckIcon,
+  FlagIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  TrashIcon,
 } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/Button.css'
 import '../components/common/DataTable.css'
 import '../components/common/Form.css'
 import './FollowUps.css'
+import { useConfirm } from '../components/common/ConfirmProvider.jsx'
 
 const tabs = [
   { value: 'today', label: "Today's Follow-ups" },
@@ -28,10 +35,10 @@ const tabs = [
 ]
 
 const statTiles = [
-  { bucket: 'overdue', label: 'Overdue', tone: 'danger' },
-  { bucket: 'today', label: 'Due Today', tone: 'warning' },
-  { bucket: 'upcoming', label: 'Upcoming', tone: 'soft' },
-  { bucket: 'done', label: 'Completed', tone: 'dark' },
+  { bucket: 'overdue', label: 'Overdue', icon: FlagIcon, accent: '#e5484d' },
+  { bucket: 'today', label: 'Due Today', icon: FollowupsIcon, accent: '#eda100' },
+  { bucket: 'upcoming', label: 'Upcoming', icon: CalendarIcon, accent: '#2a78d6' },
+  { bucket: 'done', label: 'Completed', icon: CheckCircleIcon, accent: '#1baf7a' },
 ]
 
 const typeIcons = { Call: PhoneIcon, Email: MailIcon, WhatsApp: WhatsappIcon, Meeting: MeetingsIcon }
@@ -67,7 +74,9 @@ function rowLabel(f) {
 }
 
 function FollowUps() {
-  const [items, setItems] = useState(initialFollowUps)
+  const confirm = useConfirm()
+  const { leads, employees } = useLeads()
+  const { items, create, update, remove } = useCrm('follow-ups')
   const [activeTab, setActiveTab] = useState('today')
   const [search, setSearch] = useState('')
   const [assignee, setAssignee] = useState('')
@@ -101,34 +110,39 @@ function FollowUps() {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  function complete(id) {
-    setItems((prev) => prev.map((f) => (f.id === id ? { ...f, status: 'Done', bucket: 'done' } : f)))
+  async function complete(id) {
+    await update(id, { status: 'Done', bucket: 'done' })
     setSelected(null)
   }
 
-  function reschedule(id) {
-    setItems((prev) => prev.map((f) => (f.id === id ? { ...f, bucket: 'upcoming', status: 'Pending' } : f)))
+  async function deleteFollowUp(id) {
+    if (!(await confirm({ title: 'Delete follow-up?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await remove(id)
     setSelected(null)
   }
 
-  function addFollowUp(e) {
+  async function reschedule(id) {
+    await update(id, { bucket: 'upcoming', status: 'Pending' })
+    setSelected(null)
+  }
+
+  async function addFollowUp(e) {
     e.preventDefault()
     if (!form.lead || !form.assignedTo) return
     const bucket = bucketFor(form.date)
-    setItems((prev) => [
-      {
-        id: `f-${Date.now()}`,
-        lead: form.lead,
-        employee: form.assignedTo,
-        type: form.type,
-        date: formatDate(form.date),
-        time: form.time || '—',
-        status: bucket === 'overdue' ? 'Overdue' : 'Pending',
-        bucket,
-        notes: form.notes,
-      },
-      ...prev,
-    ])
+    const linkedLead = leads.find((l) => l.company === form.lead)
+    await create({
+      leadId: linkedLead?.id,
+      lead: form.lead,
+      employee: form.assignedTo,
+      type: form.type,
+      dueDate: form.date,
+      date: formatDate(form.date),
+      time: form.time || '—',
+      status: bucket === 'overdue' ? 'Overdue' : 'Pending',
+      bucket,
+      notes: form.notes,
+    })
     setForm(emptyForm)
     setFormOpen(false)
     setActiveTab(bucket)
@@ -144,16 +158,15 @@ function FollowUps() {
 
       <div className="followups-stats">
         {statTiles.map((tile) => (
-          <button
+          <KpiCard
             key={tile.bucket}
-            type="button"
-            className={`followups-stat${activeTab === tile.bucket ? ' is-active' : ''}`}
+            label={tile.label}
+            value={counts[tile.bucket]}
+            icon={tile.icon}
+            accent={tile.accent}
+            active={activeTab === tile.bucket}
             onClick={() => setActiveTab(tile.bucket)}
-          >
-            <span className={`followups-stat__dot followups-stat__dot--${tile.tone}`} />
-            <span className="followups-stat__label">{tile.label}</span>
-            <span className="followups-stat__value">{counts[tile.bucket]}</span>
-          </button>
+          />
         ))}
       </div>
 
@@ -230,6 +243,16 @@ function FollowUps() {
                       ) : (
                         <span className="data-table__muted">—</span>
                       )}
+                      <button
+                        type="button"
+                        className="btn btn--ghost btn--sm followups-delete"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteFollowUp(f.id)
+                        }}
+                      >
+                        <TrashIcon /> Delete
+                      </button>
                     </td>
                   </tr>
                 )
@@ -245,11 +268,15 @@ function FollowUps() {
         onClose={() => setSelected(null)}
         title="Follow-up Details"
         footer={
-          selected &&
-          selected.status !== 'Done' && (
+          selected && (
             <>
-              <button className="btn btn--ghost" onClick={() => reschedule(selected.id)}>Reschedule</button>
-              <button className="btn btn--primary" onClick={() => complete(selected.id)}>Complete</button>
+              <button className="btn btn--ghost" onClick={() => deleteFollowUp(selected.id)}>Delete</button>
+              {selected.status !== 'Done' && (
+                <>
+                  <button className="btn btn--ghost" onClick={() => reschedule(selected.id)}>Reschedule</button>
+                  <button className="btn btn--primary" onClick={() => complete(selected.id)}>Complete</button>
+                </>
+              )}
             </>
           )
         }

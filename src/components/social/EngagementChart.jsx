@@ -1,11 +1,10 @@
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import ChartTooltip from '../dashboard/ChartTooltip.jsx'
-import { instagramAnalytics } from '../../data/socialMediaData.js'
 
-function EngagementChart() {
+function EngagementChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={instagramAnalytics.engagementBySource} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 0 }}>
+      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 0 }}>
         <XAxis type="number" hide />
         <YAxis
           type="category"

@@ -6,6 +6,13 @@
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
 }
 
+.chart-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .chart-card__head h3 {
   margin: 0;
   font-size: 1.05rem;
@@ -21,4 +28,24 @@
 
 .chart-card__body {
   margin-top: 1.1rem;
+}
+
+.chart-card__select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #38383d;
+  background: #fff;
+  border: 1.5px solid #e4e7ec;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.7rem;
+  flex: none;
+}
+
+.chart-card__select svg {
+  width: 14px;
+  height: 14px;
+  color: #8a8a92;
 }

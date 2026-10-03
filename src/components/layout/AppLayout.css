@@ -20,6 +20,17 @@
   display: none;
 }
 
+.app-layout__sidebar {
+  flex: none;
+  transition: width 0.22s ease, opacity 0.18s ease;
+}
+
+.app-layout__sidebar.is-collapsed {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
 @media (max-width: 1024px) {
   .app-layout__sidebar {
     position: fixed;

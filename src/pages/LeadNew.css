@@ -146,6 +146,38 @@
   color: #fff;
 }
 
+/* ---------------- Yes/No toggle ---------------- */
+.toggle-pill-group {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.toggle-pill {
+  flex: 1;
+  text-align: center;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0.6rem;
+  border: 1.5px solid #e4e7ec;
+  background: #fbfbfa;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8a8a92;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.toggle-pill:hover {
+  border-color: var(--primary-light);
+  color: #121214;
+}
+
+.toggle-pill.is-active {
+  border-color: transparent;
+  background: rgba(100, 72, 244, 0.14);
+  color: var(--primary);
+}
+
 /* ---------------- Sidebar ---------------- */
 .lead-new__side {
   display: flex;

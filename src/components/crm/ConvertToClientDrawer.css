@@ -1,0 +1,29 @@
+.convert-client__note {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.7rem;
+  background: rgba(100, 72, 244, 0.06);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #4b4b52;
+}
+
+.convert-client__section {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a3a3ab;
+}
+
+.convert-client__error {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(220, 75, 75, 0.25);
+  background: rgba(220, 75, 75, 0.06);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #9b2c2c;
+}

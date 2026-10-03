@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import TableFooter from '../components/common/TableFooter.jsx'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { proposals } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import {
   SearchIcon,
   PlusIcon,
@@ -12,11 +13,13 @@ import {
   NoteIcon,
   SendIcon,
   CheckCircleIcon,
+  TrashIcon,
 } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/Button.css'
 import '../components/common/DataTable.css'
 import './Proposals.css'
+import { useConfirm } from '../components/common/ConfirmProvider.jsx'
 
 const PAGE_SIZE = 8
 
@@ -25,6 +28,13 @@ function amountToNumber(amount) {
 }
 
 function Proposals() {
+  const confirm = useConfirm()
+  const { items: proposals, remove } = useCrm('proposals')
+
+  async function deleteProposal(id) {
+    if (!(await confirm({ title: 'Delete proposal?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await remove(id)
+  }
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
@@ -35,12 +45,12 @@ function Proposals() {
       sent: proposals.filter((p) => p.status === 'Sent').length,
       accepted: proposals.filter((p) => p.status === 'Accepted').length,
     }),
-    []
+    [proposals]
   )
 
   const totalValue = useMemo(
     () => proposals.reduce((sum, p) => sum + amountToNumber(p.amount), 0),
-    []
+    [proposals]
   )
 
   const filteredProposals = useMemo(() => {
@@ -52,7 +62,7 @@ function Proposals() {
         p.company.toLowerCase().includes(q) ||
         p.service.toLowerCase().includes(q)
     )
-  }, [search])
+  }, [proposals, search])
 
   function changeSearch(value) {
     setSearch(value)
@@ -70,34 +80,10 @@ function Proposals() {
       </PageHeader>
 
       <div className="proposals-stats">
-        <div className="proposals-stat">
-          <span className="proposals-stat__icon"><ProposalsIcon /></span>
-          <div>
-            <p className="proposals-stat__value">{stats.total}</p>
-            <p className="proposals-stat__label">Total Proposals</p>
-          </div>
-        </div>
-        <div className="proposals-stat">
-          <span className="proposals-stat__icon"><NoteIcon /></span>
-          <div>
-            <p className="proposals-stat__value">{stats.draft}</p>
-            <p className="proposals-stat__label">Draft</p>
-          </div>
-        </div>
-        <div className="proposals-stat">
-          <span className="proposals-stat__icon"><SendIcon /></span>
-          <div>
-            <p className="proposals-stat__value">{stats.sent}</p>
-            <p className="proposals-stat__label">Sent</p>
-          </div>
-        </div>
-        <div className="proposals-stat">
-          <span className="proposals-stat__icon"><CheckCircleIcon /></span>
-          <div>
-            <p className="proposals-stat__value">{stats.accepted}</p>
-            <p className="proposals-stat__label">Accepted</p>
-          </div>
-        </div>
+        <KpiCard label="Total Proposals" value={stats.total} icon={ProposalsIcon} accent="#2a78d6" />
+        <KpiCard label="Draft" value={stats.draft} icon={NoteIcon} accent="#667085" />
+        <KpiCard label="Sent" value={stats.sent} icon={SendIcon} accent="#eda100" />
+        <KpiCard label="Accepted" value={stats.accepted} icon={CheckCircleIcon} accent="#1baf7a" />
       </div>
 
       <div className="data-table-wrap">
@@ -128,6 +114,7 @@ function Proposals() {
                 <th>Created By</th>
                 <th>Date</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -140,6 +127,11 @@ function Proposals() {
                   <td className="data-table__muted">{p.createdBy}</td>
                   <td className="data-table__muted">{p.date}</td>
                   <td><Badge tone={statusTone(p.status)}>{p.status}</Badge></td>
+                  <td>
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => deleteProposal(p.id)}>
+                      <TrashIcon /> Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

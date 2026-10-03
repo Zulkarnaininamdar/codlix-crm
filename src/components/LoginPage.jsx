@@ -23,7 +23,7 @@ function LoginPage() {
     if (user) navigate(landingPathFor(user.role), { replace: true })
   }, [user, navigate])
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
 
     const nextErrors = {}
@@ -36,15 +36,13 @@ function LoginPage() {
     if (Object.keys(nextErrors).length > 0) return
 
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      const account = login(username.trim(), password)
-      if (!account) {
-        setErrors({ form: 'Invalid username or password.' })
-        return
-      }
-      navigate(landingPathFor(account.role))
-    }, 600)
+    const result = await login(username.trim(), password)
+    setLoading(false)
+    if (!result.ok) {
+      setErrors({ form: result.error })
+      return
+    }
+    navigate(landingPathFor(result.user.role))
   }
 
   return (

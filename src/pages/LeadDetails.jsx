@@ -5,9 +5,14 @@ import Tabs from '../components/common/Tabs.jsx'
 import StageTracker from '../components/common/StageTracker.jsx'
 import Drawer from '../components/common/Drawer.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { leads, pipelineStages, employeeName, companies, followUps } from '../data/mockData.js'
+import { pipelineStages } from '../data/pipeline.js'
+import { useLeads } from '../context/LeadsContext.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { useCrm } from '../hooks/useCrm.js'
+import ConvertToClientDrawer from '../components/crm/ConvertToClientDrawer.jsx'
 import {
   ArrowLeftIcon,
+  CheckCircleIcon,
   PhoneIcon,
   MailIcon,
   WhatsappIcon,
@@ -18,32 +23,38 @@ import {
   MapPinIcon,
   LinkedinIcon,
   FlagIcon,
-  BuildingIcon,
-  ChevronRightIcon,
   ChevronDownIcon,
   UserIcon,
   CalendarIcon,
   PlusIcon,
+  RefreshIcon,
+  TrashIcon,
 } from '../components/icons/Icons.jsx'
 import '../components/common/Button.css'
 import '../components/common/DataTable.css'
 import '../components/common/StageTracker.css'
 import '../components/common/Form.css'
 import './LeadDetails.css'
+import { useConfirm } from '../components/common/ConfirmProvider.jsx'
 
 const tabs = [
   { value: 'overview', label: 'Overview' },
   { value: 'followups', label: 'Follow-ups' },
+  { value: 'meetings', label: 'Meetings' },
+  { value: 'proposals', label: 'Proposals' },
   { value: 'notes', label: 'Notes' },
 ]
 
 const followupIcons = { Call: PhoneIcon, Email: MailIcon, WhatsApp: WhatsappIcon, Meeting: MeetingsIcon }
 
 const customFollowupTypes = ['Call', 'Email', 'WhatsApp', 'Meeting', 'Other']
+const meetingTypes = ['Video Call', 'Phone Call', 'In Person']
+const proposalStatuses = ['Draft', 'Sent', 'Viewed', 'Negotiation', 'Accepted', 'Rejected']
 
 const emptyCustomFollowup = { type: 'Call', date: '', time: '', notes: '' }
-
 const emptyContact = { name: '', designation: '', phone: '', email: '', linkedin: '' }
+const emptyMeeting = { title: '', date: '', startTime: '', endTime: '', type: 'Video Call', participants: '', agenda: '' }
+const emptyProposal = { service: '', amount: '', date: '', status: 'Draft' }
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10)
@@ -57,17 +68,16 @@ function formatFollowupDate(dateISO) {
 
 function LeadDetails() {
   const { id } = useParams()
+  const { leads, employees, loaded } = useLeads()
   const lead = leads.find((l) => l.id === id)
-  const [tab, setTab] = useState('overview')
-  const [leadFollowUps, setLeadFollowUps] = useState(() => followUps.filter((f) => f.lead === lead?.company))
-  const [noteDraft, setNoteDraft] = useState(lead?.notes ?? '')
-  const [noteSaved, setNoteSaved] = useState(false)
-  const [dealDetailsOpen, setDealDetailsOpen] = useState(true)
-  const [customFollowupOpen, setCustomFollowupOpen] = useState(false)
-  const [customFollowup, setCustomFollowup] = useState(emptyCustomFollowup)
-  const [extraContacts, setExtraContacts] = useState([])
-  const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
-  const [contactForm, setContactForm] = useState(emptyContact)
+
+  if (!loaded) {
+    return (
+      <div className="lead-details-page">
+        <p className="lead-details__empty">Loading lead…</p>
+      </div>
+    )
+  }
 
   if (!lead) {
     return (
@@ -80,28 +90,72 @@ function LeadDetails() {
     )
   }
 
-  const isLost = lead.status === 'Lost'
-  const stageIndex = pipelineStages.indexOf(lead.status)
-  const whatsappNumber = lead.phone.replace(/[^\d]/g, '')
-  const relatedCompany = companies.find((c) => c.name === lead.company)
+  return <LeadDetailView key={lead.id} lead={lead} employees={employees} />
+}
 
-  function addCustomFollowUp(e) {
+function LeadDetailView({ lead, employees }) {
+  const confirm = useConfirm()
+  const employeeName = (empId) => employees.find((e) => e.id === empId)?.name ?? empId
+  const { updateLead, refresh } = useLeads()
+  const { user } = useAuth()
+  const isManager = user?.role === 'sales-manager'
+  const status = lead.status
+  const [convertOpen, setConvertOpen] = useState(false)
+  const [preLostStatus, setPreLostStatus] = useState(lead.status === 'Lost' ? 'New' : lead.status)
+  const [tab, setTab] = useState('overview')
+  const followUpsApi = useCrm('follow-ups', { parentId: lead.id })
+  const meetingsApi = useCrm('meetings', { parentId: lead.id })
+  const proposalsApi = useCrm('proposals')
+  const leadFollowUps = followUpsApi.items
+  const leadMeetings = meetingsApi.items
+  const leadProposals = proposalsApi.items.filter((p) => p.company === lead.company)
+  const [noteDraft, setNoteDraft] = useState(lead?.notes ?? '')
+  const [noteSaved, setNoteSaved] = useState(false)
+  const [dealDetailsOpen, setDealDetailsOpen] = useState(true)
+  const [customFollowupOpen, setCustomFollowupOpen] = useState(false)
+  const [customFollowup, setCustomFollowup] = useState(emptyCustomFollowup)
+  const [extraContacts, setExtraContacts] = useState([])
+  const [contactDrawerOpen, setContactDrawerOpen] = useState(false)
+  const [contactForm, setContactForm] = useState(emptyContact)
+  const [meetingDrawerOpen, setMeetingDrawerOpen] = useState(false)
+  const [meetingForm, setMeetingForm] = useState(emptyMeeting)
+  const [meetingError, setMeetingError] = useState('')
+  const [proposalDrawerOpen, setProposalDrawerOpen] = useState(false)
+  const [proposalForm, setProposalForm] = useState(emptyProposal)
+
+  const isLost = status === 'Lost'
+  const stageIndex = pipelineStages.indexOf(status)
+  const whatsappNumber = (lead.phone ?? '').replace(/[^\d]/g, '')
+
+  function changeStage(stage) {
+    setPreLostStatus(stage)
+    updateLead(lead.id, { status: stage })
+  }
+
+  function markAsLost() {
+    setPreLostStatus(status)
+    updateLead(lead.id, { status: 'Lost' })
+  }
+
+  function reopenLead() {
+    updateLead(lead.id, { status: preLostStatus })
+  }
+
+  async function addCustomFollowUp(e) {
     e.preventDefault()
     const isToday = !customFollowup.date || customFollowup.date === todayISO()
-    setLeadFollowUps((prev) => [
-      {
-        id: `f-${lead.id}-${Date.now()}`,
-        lead: lead.company,
-        employee: employeeName(lead.assignedTo),
-        type: customFollowup.type,
-        date: formatFollowupDate(customFollowup.date),
-        time: customFollowup.time || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        status: 'Pending',
-        bucket: isToday ? 'today' : 'upcoming',
-        notes: customFollowup.notes || `${customFollowup.type} follow-up scheduled.`,
-      },
-      ...prev,
-    ])
+    await followUpsApi.create({
+      leadId: lead.id,
+      lead: lead.company,
+      employee: employeeName(lead.assignedTo),
+      type: customFollowup.type,
+      dueDate: customFollowup.date || todayISO(),
+      date: formatFollowupDate(customFollowup.date),
+      time: customFollowup.time || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      status: 'Pending',
+      bucket: isToday ? 'today' : 'upcoming',
+      notes: customFollowup.notes || `${customFollowup.type} follow-up scheduled.`,
+    })
     setCustomFollowup(emptyCustomFollowup)
     setCustomFollowupOpen(false)
   }
@@ -114,14 +168,78 @@ function LeadDetails() {
     setContactDrawerOpen(false)
   }
 
-  function completeFollowUp(followupId) {
-    setLeadFollowUps((prev) => prev.map((f) => (f.id === followupId ? { ...f, status: 'Done' } : f)))
+  async function addMeeting(e) {
+    e.preventDefault()
+    if (!meetingForm.title.trim()) {
+      setMeetingError('Meeting title is required.')
+      return
+    }
+    setMeetingError('')
+    try {
+      await meetingsApi.create({
+      leadId: lead.id,
+      title: meetingForm.title,
+      lead: lead.company,
+      date: meetingForm.date || todayISO(),
+      startTime: meetingForm.startTime,
+      endTime: meetingForm.endTime,
+      type: meetingForm.type,
+      link: '',
+      participants: meetingForm.participants
+        ? meetingForm.participants.split(',').map((p) => p.trim()).filter(Boolean)
+        : [],
+      agenda: meetingForm.agenda,
+      notes: '',
+      outcome: '',
+      nextAction: '',
+      nextFollowup: '',
+      })
+    } catch (err) {
+      setMeetingError(err.message || 'Could not schedule this meeting.')
+      return
+    }
+    setMeetingForm(emptyMeeting)
+    setMeetingDrawerOpen(false)
   }
 
-  function rescheduleFollowUp(followupId) {
-    setLeadFollowUps((prev) =>
-      prev.map((f) => (f.id === followupId ? { ...f, status: 'Pending', bucket: 'upcoming', date: 'Tomorrow' } : f))
-    )
+  async function addProposal(e) {
+    e.preventDefault()
+    if (!proposalForm.service.trim()) return
+    await proposalsApi.create({
+      company: lead.company,
+      leadId: lead.id,
+      service: proposalForm.service,
+      amount: proposalForm.amount,
+      createdBy: employeeName(lead.assignedTo),
+      date: proposalForm.date || todayISO(),
+      status: proposalForm.status,
+      items: [],
+    })
+    setProposalForm(emptyProposal)
+    setProposalDrawerOpen(false)
+  }
+
+  async function completeFollowUp(followupId) {
+    await followUpsApi.update(followupId, { status: 'Done' })
+  }
+
+  async function rescheduleFollowUp(followupId) {
+    await followUpsApi.update(followupId, { status: 'Pending', bucket: 'upcoming', date: 'Tomorrow' })
+  }
+
+  async function deleteFollowUp(followupId) {
+    if (!(await confirm({ title: 'Delete follow-up?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await followUpsApi.remove(followupId)
+  }
+
+  async function deleteMeeting(meetingId) {
+    if (!(await confirm({ title: 'Delete meeting?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await meetingsApi.remove(meetingId)
+  }
+
+  async function deleteProposal(proposalId) {
+    if (!(await confirm({ title: 'Delete proposal?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await proposalsApi.remove(proposalId)
   }
 
   return (
@@ -136,7 +254,7 @@ function LeadDetails() {
           <div>
             <div className="lead-details__title-row">
               <h1>{lead.company}</h1>
-              <Badge tone={statusTone(lead.status)}>{lead.status}</Badge>
+              <Badge tone={statusTone(status)}>{status}</Badge>
               <Badge tone={statusTone(lead.priority)}>{lead.priority} Priority</Badge>
             </div>
             <div className="lead-details__meta">
@@ -161,15 +279,35 @@ function LeadDetails() {
             </a>
           </div>
           <div className="lead-details__action-row">
-            <Link to="/follow-ups" className="btn btn--ghost btn--sm">
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTab('followups')}>
               <FollowupsIcon /> Follow-up
-            </Link>
-            <Link to="/meetings" className="btn btn--ghost btn--sm">
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTab('meetings')}>
               <MeetingsIcon /> Meeting
-            </Link>
-            <Link to="/proposals" className="btn btn--ghost btn--sm">
+            </button>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setTab('proposals')}>
               <ProposalsIcon /> Proposal
-            </Link>
+            </button>
+            {isLost ? (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={reopenLead}>
+                <RefreshIcon /> Reopen Lead
+              </button>
+            ) : (
+              <button type="button" className="btn btn--ghost btn--sm" onClick={markAsLost}>
+                <FlagIcon /> Mark as Lost
+              </button>
+            )}
+            {lead.convertedClientId ? (
+              isManager && (
+                <Link to="/clients" className="btn btn--ghost btn--sm">
+                  <CheckCircleIcon /> Client
+                </Link>
+              )
+            ) : status === 'Won' && isManager ? (
+              <button type="button" className="btn btn--primary btn--sm" onClick={() => setConvertOpen(true)}>
+                <CheckCircleIcon /> Convert to Client
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -179,7 +317,7 @@ function LeadDetails() {
           <FlagIcon /> This lead was marked as <strong>Lost</strong>
         </div>
       ) : (
-        <StageTracker stages={pipelineStages} currentIndex={stageIndex} />
+        <StageTracker stages={pipelineStages} currentIndex={stageIndex} onSelect={changeStage} />
       )}
 
       <div className="lead-details__body">
@@ -194,6 +332,7 @@ function LeadDetails() {
                   <ul>
                     <li><GlobeIcon /> {lead.website}</li>
                     <li><MapPinIcon /> {lead.city}, {lead.country}</li>
+                    {lead.address && <li><MapPinIcon /> {lead.address}</li>}
                     <li>{lead.industry}</li>
                   </ul>
                 </div>
@@ -269,22 +408,116 @@ function LeadDetails() {
                             </p>
                             {f.notes && <p className="followup-item__notes">{f.notes}</p>}
                           </div>
-                          {f.status !== 'Done' && (
-                            <div className="followup-item__actions">
-                              <button className="btn btn--ghost btn--sm" onClick={() => rescheduleFollowUp(f.id)}>
-                                Reschedule
-                              </button>
-                              <button className="btn btn--primary btn--sm" onClick={() => completeFollowUp(f.id)}>
-                                Complete
-                              </button>
-                            </div>
-                          )}
+                          <div className="followup-item__actions">
+                            {f.status !== 'Done' && (
+                              <>
+                                <button className="btn btn--ghost btn--sm" onClick={() => rescheduleFollowUp(f.id)}>
+                                  Reschedule
+                                </button>
+                                <button className="btn btn--primary btn--sm" onClick={() => completeFollowUp(f.id)}>
+                                  Complete
+                                </button>
+                              </>
+                            )}
+                            <button className="btn btn--ghost btn--sm" onClick={() => deleteFollowUp(f.id)}>
+                              <TrashIcon /> Delete
+                            </button>
+                          </div>
                         </li>
                       )
                     })}
                   </ul>
                 ) : (
                   <p className="lead-details__empty">No follow-ups scheduled yet. Use the buttons above to schedule one.</p>
+                )}
+              </>
+            )}
+
+            {tab === 'meetings' && (
+              <>
+                <div className="activity-composer">
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => setMeetingDrawerOpen(true)}
+                  >
+                    <PlusIcon /> Add Meeting
+                  </button>
+                </div>
+
+                {leadMeetings.length > 0 ? (
+                  <ul className="followup-list">
+                    {leadMeetings.map((m) => (
+                      <li className="followup-item" key={m.id}>
+                        <span className="followup-item__icon">
+                          <MeetingsIcon />
+                        </span>
+                        <div className="followup-item__body">
+                          <div className="followup-item__top">
+                            <p className="followup-item__type">{m.title}</p>
+                            <Badge tone="outline">{m.type}</Badge>
+                          </div>
+                          <p className="followup-item__meta">
+                            {m.date} · {m.startTime}–{m.endTime}
+                            {m.participants.length > 0 ? ` · ${m.participants.join(', ')}` : ''}
+                          </p>
+                          {m.agenda && <p className="followup-item__notes">{m.agenda}</p>}
+                        </div>
+                        <div className="followup-item__actions">
+                          <button className="btn btn--ghost btn--sm" onClick={() => deleteMeeting(m.id)}>
+                            <TrashIcon /> Delete
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="lead-details__empty">No meetings scheduled yet. Use the button above to schedule one.</p>
+                )}
+              </>
+            )}
+
+            {tab === 'proposals' && (
+              <>
+                <div className="activity-composer">
+                  <button
+                    type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => setProposalDrawerOpen(true)}
+                  >
+                    <PlusIcon /> Add Proposal
+                  </button>
+                </div>
+
+                {leadProposals.length > 0 ? (
+                  <ul className="followup-list">
+                    {leadProposals.map((p) => (
+                      <li className="followup-item" key={p.id}>
+                        <span className="followup-item__icon">
+                          <ProposalsIcon />
+                        </span>
+                        <div className="followup-item__body">
+                          <div className="followup-item__top">
+                            <p className="followup-item__type">{p.service}</p>
+                            <Badge tone={statusTone(p.status)}>{p.status}</Badge>
+                          </div>
+                          <p className="followup-item__meta">
+                            {p.id} · {p.amount} · {p.date}
+                          </p>
+                        </div>
+                        <div className="followup-item__actions">
+                          <Link to={`/proposals/${p.id}`} className="btn btn--ghost btn--sm">
+                            View
+                          </Link>
+                          <button className="btn btn--ghost btn--sm" onClick={() => deleteProposal(p.id)}>
+                            <TrashIcon /> Delete
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="lead-details__empty">No proposals sent yet. Use the button above to add one.</p>
                 )}
               </>
             )}
@@ -347,19 +580,6 @@ function LeadDetails() {
             )}
           </section>
 
-          {relatedCompany && (
-            <section className="lead-details__card">
-              <h3>Related</h3>
-              <Link to={`/companies/${relatedCompany.id}`} className="related-company-card">
-                <span className="related-company-card__icon"><BuildingIcon /></span>
-                <div>
-                  <p className="data-table__primary">{relatedCompany.name}</p>
-                  <p className="data-table__secondary">View company profile</p>
-                </div>
-                <ChevronRightIcon className="related-company-card__chevron" />
-              </Link>
-            </section>
-          )}
         </aside>
       </div>
 
@@ -477,6 +697,147 @@ function LeadDetails() {
           </div>
         </form>
       </Drawer>
+
+      <Drawer
+        open={meetingDrawerOpen}
+        onClose={() => setMeetingDrawerOpen(false)}
+        title="Schedule Meeting"
+        footer={
+          <>
+            <button className="btn btn--ghost btn--block" onClick={() => setMeetingDrawerOpen(false)}>
+              Cancel
+            </button>
+            <button type="submit" form="add-meeting-form" className="btn btn--primary btn--block">
+              Schedule Meeting
+            </button>
+          </>
+        }
+      >
+        <form id="add-meeting-form" onSubmit={addMeeting} noValidate>
+          <div className="field">
+            <label>Meeting Title</label>
+            <input
+              value={meetingForm.title}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g. Proposal Walkthrough"
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Meeting Type</label>
+            <select
+              value={meetingForm.type}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, type: e.target.value }))}
+            >
+              {meetingTypes.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label>Date</label>
+            <input
+              type="date"
+              value={meetingForm.date}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, date: e.target.value }))}
+            />
+          </div>
+          <div className="field">
+            <label>Start Time</label>
+            <input
+              type="time"
+              value={meetingForm.startTime}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, startTime: e.target.value }))}
+            />
+          </div>
+          <div className="field">
+            <label>End Time</label>
+            <input
+              type="time"
+              value={meetingForm.endTime}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, endTime: e.target.value }))}
+            />
+          </div>
+          <div className="field">
+            <label>Participants</label>
+            <input
+              value={meetingForm.participants}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, participants: e.target.value }))}
+              placeholder="Comma-separated names"
+            />
+          </div>
+          <div className="field">
+            <label>Agenda</label>
+            <textarea
+              value={meetingForm.agenda}
+              onChange={(e) => setMeetingForm((prev) => ({ ...prev, agenda: e.target.value }))}
+              placeholder="What will this meeting cover?"
+            />
+          </div>
+                  {meetingError && <p className="field__error">{meetingError}</p>}
+        </form>
+      </Drawer>
+
+      <Drawer
+        open={proposalDrawerOpen}
+        onClose={() => setProposalDrawerOpen(false)}
+        title="New Proposal"
+        footer={
+          <>
+            <button className="btn btn--ghost btn--block" onClick={() => setProposalDrawerOpen(false)}>
+              Cancel
+            </button>
+            <button type="submit" form="add-proposal-form" className="btn btn--primary btn--block">
+              Add Proposal
+            </button>
+          </>
+        }
+      >
+        <form id="add-proposal-form" onSubmit={addProposal} noValidate>
+          <div className="field">
+            <label>Service</label>
+            <input
+              value={proposalForm.service}
+              onChange={(e) => setProposalForm((prev) => ({ ...prev, service: e.target.value }))}
+              placeholder="e.g. ERP Implementation"
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Amount</label>
+            <input
+              value={proposalForm.amount}
+              onChange={(e) => setProposalForm((prev) => ({ ...prev, amount: e.target.value }))}
+              placeholder="e.g. ₹6,20,000"
+            />
+          </div>
+          <div className="field">
+            <label>Date</label>
+            <input
+              type="date"
+              value={proposalForm.date}
+              onChange={(e) => setProposalForm((prev) => ({ ...prev, date: e.target.value }))}
+            />
+          </div>
+          <div className="field">
+            <label>Status</label>
+            <select
+              value={proposalForm.status}
+              onChange={(e) => setProposalForm((prev) => ({ ...prev, status: e.target.value }))}
+            >
+              {proposalStatuses.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </form>
+      </Drawer>
+      <ConvertToClientDrawer
+        lead={lead}
+        open={convertOpen}
+        onClose={() => setConvertOpen(false)}
+        onConverted={() => refresh()}
+      />
     </div>
   )
 }

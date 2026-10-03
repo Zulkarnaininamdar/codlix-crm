@@ -12,48 +12,6 @@
   gap: 1rem;
 }
 
-.leads-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #fff;
-  border: 1px solid #e4e7ec;
-  border-radius: 0.9rem;
-  padding: 0.9rem 1.1rem;
-}
-
-.leads-stat__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 0.65rem;
-  background: rgba(100, 72, 244, 0.1);
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
-.leads-stat__icon svg {
-  width: 17px;
-  height: 17px;
-}
-
-.leads-stat__value {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #121214;
-  line-height: 1.2;
-}
-
-.leads-stat__label {
-  margin: 0.1rem 0 0;
-  font-size: 0.76rem;
-  color: #8a8a92;
-  font-weight: 500;
-}
-
 /* ---------------- Toolbar (inside table card) ---------------- */
 .leads-search {
   display: flex;
@@ -107,6 +65,25 @@
   color: #fff;
   font-size: 0.68rem;
   font-weight: 700;
+}
+
+.leads-assign-select {
+  border: 1px solid #e4e7ec;
+  border-radius: 0.5rem;
+  background: #fbfbfa;
+  padding: 0.35rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #121214;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.leads-assign-select:hover,
+.leads-assign-select:focus {
+  border-color: var(--primary-light);
+  outline: none;
 }
 
 @media (max-width: 900px) {

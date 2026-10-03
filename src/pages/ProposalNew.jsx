@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { companies, employees, proposals } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   BuildingIcon,
@@ -28,9 +29,7 @@ function currency(n) {
 }
 
 function nextProposalId() {
-  const year = new Date().getFullYear()
-  const seq = proposals.filter((p) => p.id.includes(String(year))).length + 1
-  return `CT-${year}-${String(seq).padStart(3, '0')}`
+  return 'Assigned on save'
 }
 
 let itemSeq = 0
@@ -42,7 +41,7 @@ function emptyItem() {
 const initialForm = {
   company: '',
   service: '',
-  createdBy: employees[0]?.name ?? '',
+  createdBy: '',
   date: todayISO(),
 }
 
@@ -54,10 +53,14 @@ const requiredFields = [
 
 function ProposalNew() {
   const navigate = useNavigate()
+  const { employees } = useLeads()
+  const { items: companies } = useCrm('companies')
+  const { create: saveProposal } = useCrm('proposals')
   const [form, setForm] = useState(initialForm)
   const [items, setItems] = useState([emptyItem()])
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const proposalId = useMemo(() => nextProposalId(), [])
 
   function set(key, value) {
@@ -91,7 +94,7 @@ function ProposalNew() {
   const totalRequired = requiredFields.length + 1
   const progress = Math.round((completedCount / totalRequired) * 100)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const nextErrors = {}
     if (!form.company.trim()) nextErrors.company = 'Select a client company.'
@@ -102,10 +105,23 @@ function ProposalNew() {
     if (Object.keys(nextErrors).length > 0) return
 
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
+    setSubmitError('')
+    try {
+      await saveProposal({
+        company: form.company,
+        service: form.service,
+        amount: currency(grandTotal),
+        createdBy: form.createdBy,
+        date: form.date,
+        status: 'Draft',
+        items: items.map(({ key, ...item }) => item),
+      })
       navigate('/proposals')
-    }, 900)
+    } catch (err) {
+      setSubmitError(err.message || 'Could not save the proposal.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -152,6 +168,7 @@ function ProposalNew() {
                 <div className="field">
                   <label>Created By<span className="required">*</span></label>
                   <select value={form.createdBy} onChange={(e) => set('createdBy', e.target.value)}>
+                    <option value="">Select employee</option>
                     {employees.map((emp) => (
                       <option key={emp.id} value={emp.name}>{emp.name} — {emp.role}</option>
                     ))}
@@ -264,6 +281,8 @@ function ProposalNew() {
               </div>
             </div>
           </div>
+
+          {submitError && <p className="field__error">{submitError}</p>}
 
           <div className="form-actions proposal-new__mobile-actions">
             <Link to="/proposals" className="btn btn--ghost">Cancel</Link>

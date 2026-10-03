@@ -77,6 +77,27 @@
   color: #8a8a92;
 }
 
+.ig-account-card__photo {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.ig-account-card__synced {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: #a3a3ab;
+}
+
+.ig-account-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: none;
+}
+
 @media (max-width: 720px) {
   .ig-account-card {
     flex-wrap: wrap;

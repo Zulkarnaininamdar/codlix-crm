@@ -1,13 +1,11 @@
 import {
   DashboardIcon,
-  SalesIcon,
   LeadsIcon,
-  CompaniesIcon,
   FollowupsIcon,
   MeetingsIcon,
   ProposalsIcon,
-  CustomersIcon,
   ClientsIcon,
+  EmployeesIcon,
   SocialIcon,
   AnalyticsIcon,
   InstagramIcon,
@@ -17,25 +15,17 @@ import {
 
 export const navConfig = [
   { type: 'link', label: 'Dashboard', path: '/dashboard', icon: DashboardIcon },
-  { type: 'link', label: 'Social Media', path: '/marketing/social', icon: SocialIcon },
-  {
-    type: 'group',
-    label: 'Sales',
-    icon: SalesIcon,
-    children: [
-      { label: 'Leads', path: '/leads', icon: LeadsIcon },
-      { label: 'Companies', path: '/companies', icon: CompaniesIcon },
-      { label: 'Follow-ups', path: '/follow-ups', icon: FollowupsIcon },
-      { label: 'Meetings', path: '/meetings', icon: MeetingsIcon },
-      { label: 'Proposals', path: '/proposals', icon: ProposalsIcon },
-    ],
-  },
-  {
-    type: 'group',
-    label: 'Customers',
-    icon: CustomersIcon,
-    children: [{ label: 'Clients', path: '/clients', icon: ClientsIcon }],
-  },
+  { type: 'link', label: 'Leads', path: '/leads', icon: LeadsIcon },
+  { type: 'link', label: 'Follow-ups', path: '/follow-ups', icon: FollowupsIcon },
+  { type: 'link', label: 'Meetings', path: '/meetings', icon: MeetingsIcon },
+  { type: 'link', label: 'Proposals', path: '/proposals', icon: ProposalsIcon },
+]
+
+// Clients are managed by sales managers only.
+export const salesManagerNavConfig = [
+  ...navConfig,
+  { type: 'link', label: 'Clients', path: '/clients', icon: ClientsIcon },
+  { type: 'link', label: 'Team', path: '/team/sales-executives', icon: EmployeesIcon },
 ]
 
 export const socialManagerNavConfig = [

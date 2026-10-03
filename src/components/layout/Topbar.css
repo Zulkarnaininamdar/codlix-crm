@@ -13,20 +13,7 @@
 }
 
 .topbar__menu-btn {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  width: 22px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0.4rem;
-}
-
-.topbar__menu-btn span {
-  height: 2px;
-  background: #121214;
-  border-radius: 2px;
+  flex: none;
 }
 
 .topbar__heading {
@@ -36,15 +23,8 @@
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: #121214;
-}
-
-.topbar__heading-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--primary);
-  flex: none;
 }
 
 .topbar__search {
@@ -487,12 +467,6 @@
 
 .topbar__notif-footer:hover {
   background: #f4f4f5;
-}
-
-@media (max-width: 1024px) {
-  .topbar__menu-btn {
-    display: flex;
-  }
 }
 
 @media (max-width: 720px) {

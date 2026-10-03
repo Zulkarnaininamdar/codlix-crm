@@ -1,0 +1,47 @@
+/* ---------------- Projects tab ---------------- */
+.client-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.client-section-head__count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #8a8a92;
+}
+
+.client-status-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.client-status-select {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #55555c;
+  background: #fff;
+  border: 1px solid #ececef;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
+.client-status-select:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(100, 72, 244, 0.12);
+}
+
+/* ---------------- Edit drawers ---------------- */
+.client-form__hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #a3a3ab;
+}

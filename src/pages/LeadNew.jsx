@@ -3,19 +3,20 @@ import { useNavigate, Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { employees } from '../data/mockData.js'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   BuildingIcon,
   ContactsIcon,
   SalesIcon,
-  EmployeesIcon,
   NoteIcon,
   CheckCircleIcon,
   GlobeIcon,
   MapPinIcon,
   PhoneIcon,
   MailIcon,
+  WhatsappIcon,
   LinkedinIcon,
   BudgetIcon,
   CalendarIcon,
@@ -23,6 +24,9 @@ import {
   BriefcaseIcon,
   TrendUpIcon,
   ProposalsIcon,
+  InstagramIcon,
+  FacebookIcon,
+  StarIcon,
 } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/Button.css'
@@ -31,16 +35,18 @@ import './LeadNew.css'
 
 const sources = ['LinkedIn', 'Cold Email', 'Referral', 'Website', 'WhatsApp', 'Other']
 const priorities = ['Low', 'Medium', 'High', 'Urgent']
+const socialPerformanceLevels = ['Not Active', 'Poor', 'Average', 'Good', 'Excellent']
 
 const initialForm = {
   companyName: '',
-  website: '',
   industry: '',
   country: '',
   city: '',
+  address: '',
   contactPerson: '',
   designation: '',
   phone: '',
+  whatsapp: '',
   email: '',
   linkedin: '',
   leadSource: '',
@@ -48,6 +54,14 @@ const initialForm = {
   priority: 'Medium',
   budget: '',
   closingDate: '',
+  hasWebsite: '',
+  websiteUrl: '',
+  hasInstagram: '',
+  instagramHandle: '',
+  hasFacebook: '',
+  facebookPage: '',
+  socialPerformance: '',
+  googleReviews: '',
   assignedTo: '',
   notes: '',
 }
@@ -57,7 +71,6 @@ const requiredFields = [
   { key: 'contactPerson', label: 'Contact person' },
   { key: 'phone', label: 'Phone number' },
   { key: 'leadSource', label: 'Lead source' },
-  { key: 'assignedTo', label: 'Assigned employee' },
 ]
 
 function initials(name) {
@@ -68,9 +81,14 @@ function initials(name) {
 
 function LeadNew() {
   const navigate = useNavigate()
+  const { user, executives } = useAuth()
+  const { addLead } = useLeads()
+  const isManager = user?.role === 'sales-manager'
+  const salesExecutives = useMemo(() => executives.filter((e) => e.active), [executives])
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   function set(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -81,16 +99,14 @@ function LeadNew() {
     [form]
   )
   const progress = Math.round((completedCount / requiredFields.length) * 100)
-  const assignedEmployee = employees.find((e) => e.id === form.assignedTo)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const required = {
       companyName: 'Company name is required.',
       contactPerson: 'Contact person is required.',
       phone: 'Phone number is required.',
       leadSource: 'Lead source is required.',
-      assignedTo: 'Please assign this lead to an employee.',
     }
     const nextErrors = {}
     Object.entries(required).forEach(([key, message]) => {
@@ -100,10 +116,42 @@ function LeadNew() {
     if (Object.keys(nextErrors).length > 0) return
 
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
+    setSubmitError('')
+    try {
+      await addLead({
+        company: form.companyName,
+        website: form.hasWebsite === 'Yes' ? form.websiteUrl : '',
+        industry: form.industry,
+        country: form.country,
+        city: form.city,
+        address: form.address,
+        contactName: form.contactPerson,
+        designation: form.designation,
+        phone: form.phone,
+        whatsapp: form.whatsapp,
+        email: form.email,
+        linkedin: form.linkedin,
+        source: form.leadSource,
+        service: form.service,
+        priority: form.priority,
+        budget: form.budget,
+        closingDate: form.closingDate,
+        hasInstagram: form.hasInstagram === 'Yes',
+        instagramHandle: form.instagramHandle,
+        hasFacebook: form.hasFacebook === 'Yes',
+        facebookPage: form.facebookPage,
+        socialPerformance: form.socialPerformance,
+        googleReviews: form.googleReviews,
+        status: 'New',
+        notes: form.notes,
+        assignedTo: isManager ? form.assignedTo : undefined,
+      })
       navigate('/leads')
-    }, 900)
+    } catch (err) {
+      setSubmitError(err.message || 'Could not save the lead.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -141,13 +189,6 @@ function LeadNew() {
                   {errors.companyName && <span className="field__error">{errors.companyName}</span>}
                 </div>
                 <div className="field">
-                  <label>Website</label>
-                  <div className="lead-field__control">
-                    <GlobeIcon className="lead-field__icon" />
-                    <input value={form.website} onChange={(e) => set('website', e.target.value)} placeholder="e.g. abctrading.ae" />
-                  </div>
-                </div>
-                <div className="field">
                   <label>Industry</label>
                   <div className="lead-field__control">
                     <BriefcaseIcon className="lead-field__icon" />
@@ -167,6 +208,14 @@ function LeadNew() {
                     <MapPinIcon className="lead-field__icon" />
                     <input value={form.city} onChange={(e) => set('city', e.target.value)} placeholder="e.g. Dubai" />
                   </div>
+                </div>
+                <div className="field field--full">
+                  <label>Address</label>
+                  <textarea
+                    value={form.address}
+                    onChange={(e) => set('address', e.target.value)}
+                    placeholder="Street, building, area, landmark"
+                  />
                 </div>
               </div>
             </div>
@@ -199,6 +248,13 @@ function LeadNew() {
                     <input value={form.phone} onChange={(e) => set('phone', e.target.value)} placeholder="e.g. +971 55 123 4567" />
                   </div>
                   {errors.phone && <span className="field__error">{errors.phone}</span>}
+                </div>
+                <div className="field">
+                  <label>WhatsApp Number</label>
+                  <div className="lead-field__control">
+                    <WhatsappIcon className="lead-field__icon" />
+                    <input value={form.whatsapp} onChange={(e) => set('whatsapp', e.target.value)} placeholder="e.g. +971 55 123 4567" />
+                  </div>
                 </div>
                 <div className="field">
                   <label>Email</label>
@@ -272,27 +328,129 @@ function LeadNew() {
                     <input type="date" value={form.closingDate} onChange={(e) => set('closingDate', e.target.value)} />
                   </div>
                 </div>
+                {isManager && (
+                  <div className="field">
+                    <label>Assigned Employee</label>
+                    <div className="lead-field__control">
+                      <UserIcon className="lead-field__icon" />
+                      <select value={form.assignedTo} onChange={(e) => set('assignedTo', e.target.value)}>
+                        <option value="">Unassigned</option>
+                        {salesExecutives.map((exec) => (
+                          <option key={exec.username} value={exec.employeeId}>{exec.name}</option>
+                        ))}
+                        {user?.employeeId && <option value={user.employeeId}>{user.name} (me)</option>}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="form-section">
               <h3 className="form-section__title">
-                <span className="form-section__title-icon"><EmployeesIcon /></span>
-                Assignment
+                <span className="form-section__title-icon"><GlobeIcon /></span>
+                Digital Presence
               </h3>
               <div className="form-grid">
                 <div className="field">
-                  <label>Assigned Employee<span className="required">*</span></label>
+                  <label>Has Website?</label>
+                  <div className="toggle-pill-group">
+                    {['Yes', 'No'].map((v) => (
+                      <button
+                        type="button"
+                        key={v}
+                        className={`toggle-pill${form.hasWebsite === v ? ' is-active' : ''}`}
+                        onClick={() => set('hasWebsite', v)}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {form.hasWebsite === 'Yes' && (
+                  <div className="field">
+                    <label>Website URL</label>
+                    <div className="lead-field__control">
+                      <GlobeIcon className="lead-field__icon" />
+                      <input value={form.websiteUrl} onChange={(e) => set('websiteUrl', e.target.value)} placeholder="e.g. abctrading.ae" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="field">
+                  <label>Has Instagram?</label>
+                  <div className="toggle-pill-group">
+                    {['Yes', 'No'].map((v) => (
+                      <button
+                        type="button"
+                        key={v}
+                        className={`toggle-pill${form.hasInstagram === v ? ' is-active' : ''}`}
+                        onClick={() => set('hasInstagram', v)}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {form.hasInstagram === 'Yes' && (
+                  <div className="field">
+                    <label>Instagram Handle</label>
+                    <div className="lead-field__control">
+                      <InstagramIcon className="lead-field__icon" />
+                      <input value={form.instagramHandle} onChange={(e) => set('instagramHandle', e.target.value)} placeholder="e.g. @abctrading" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="field">
+                  <label>Has Facebook?</label>
+                  <div className="toggle-pill-group">
+                    {['Yes', 'No'].map((v) => (
+                      <button
+                        type="button"
+                        key={v}
+                        className={`toggle-pill${form.hasFacebook === v ? ' is-active' : ''}`}
+                        onClick={() => set('hasFacebook', v)}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {form.hasFacebook === 'Yes' && (
+                  <div className="field">
+                    <label>Facebook Page</label>
+                    <div className="lead-field__control">
+                      <FacebookIcon className="lead-field__icon" />
+                      <input value={form.facebookPage} onChange={(e) => set('facebookPage', e.target.value)} placeholder="e.g. facebook.com/abctrading" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="field">
+                  <label>Social Media Performance</label>
                   <div className="lead-field__control">
-                    <UserIcon className="lead-field__icon" />
-                    <select value={form.assignedTo} onChange={(e) => set('assignedTo', e.target.value)}>
-                      <option value="">Select employee</option>
-                      {employees.map((emp) => (
-                        <option key={emp.id} value={emp.id}>{emp.name} — {emp.role}</option>
+                    <TrendUpIcon className="lead-field__icon" />
+                    <select value={form.socialPerformance} onChange={(e) => set('socialPerformance', e.target.value)}>
+                      <option value="">Select performance</option>
+                      {socialPerformanceLevels.map((s) => (
+                        <option key={s} value={s}>{s}</option>
                       ))}
                     </select>
                   </div>
-                  {errors.assignedTo && <span className="field__error">{errors.assignedTo}</span>}
+                </div>
+                <div className="field">
+                  <label>Google Reviews</label>
+                  <div className="lead-field__control">
+                    <StarIcon className="lead-field__icon" />
+                    <input
+                      type="number"
+                      min="0"
+                      value={form.googleReviews}
+                      onChange={(e) => set('googleReviews', e.target.value)}
+                      placeholder="e.g. 125"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -311,6 +469,8 @@ function LeadNew() {
               </div>
             </div>
           </div>
+
+          {submitError && <span className="field__error">{submitError}</span>}
 
           <div className="form-actions lead-new__mobile-actions">
             <Link to="/leads" className="btn btn--ghost">Cancel</Link>
@@ -341,12 +501,12 @@ function LeadNew() {
                 <dd>{form.phone || '—'}</dd>
               </div>
               <div>
-                <dt>Email</dt>
-                <dd>{form.email || '—'}</dd>
+                <dt>WhatsApp</dt>
+                <dd>{form.whatsapp || '—'}</dd>
               </div>
               <div>
-                <dt>Assigned to</dt>
-                <dd>{assignedEmployee ? assignedEmployee.name : 'Unassigned'}</dd>
+                <dt>Email</dt>
+                <dd>{form.email || '—'}</dd>
               </div>
             </dl>
           </div>

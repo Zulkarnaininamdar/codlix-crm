@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import PageHeader from '../components/common/PageHeader.jsx'
-import { contactsByCompany } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import { ChevronDownIcon, PhoneIcon, MailIcon, LinkedinIcon } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import './Contacts.css'
@@ -10,12 +10,16 @@ function initials(name) {
 }
 
 function Contacts() {
-  const [openCompanies, setOpenCompanies] = useState(() =>
-    Object.fromEntries(contactsByCompany.map((c) => [c.company, true]))
-  )
+  const { items: companies } = useCrm('companies')
+  const { items: contacts } = useCrm('contacts')
+  const [openCompanies, setOpenCompanies] = useState({})
+
+  const contactsByCompany = companies
+    .map((c) => ({ company: c.name, contacts: contacts.filter((x) => x.companyId === c.id) }))
+    .filter((group) => group.contacts.length > 0)
 
   function toggle(company) {
-    setOpenCompanies((prev) => ({ ...prev, [company]: !prev[company] }))
+    setOpenCompanies((prev) => ({ ...prev, [company]: !(prev[company] ?? true) }))
   }
 
   const totalContacts = contactsByCompany.reduce((sum, c) => sum + c.contacts.length, 0)
@@ -29,7 +33,7 @@ function Contacts() {
 
       <div className="contacts-tree">
         {contactsByCompany.map((group) => {
-          const isOpen = openCompanies[group.company]
+          const isOpen = openCompanies[group.company] ?? true
           return (
             <div className="contact-group" key={group.company}>
               <button className="contact-group__head" onClick={() => toggle(group.company)}>

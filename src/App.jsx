@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext.jsx'
+import { LeadsProvider } from './context/LeadsContext.jsx'
+import { ConfirmProvider } from './components/common/ConfirmProvider.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import AppLayout from './components/layout/AppLayout.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -22,6 +24,7 @@ import ProjectDetails from './pages/ProjectDetails.jsx'
 import Tasks from './pages/Tasks.jsx'
 import Employees from './pages/Employees.jsx'
 import EmployeeDetails from './pages/EmployeeDetails.jsx'
+import SalesExecutives from './pages/SalesExecutives.jsx'
 import Reports from './pages/Reports.jsx'
 import SocialMediaLayout from './components/social/SocialMediaLayout.jsx'
 import SocialOverview from './pages/social/SocialOverview.jsx'
@@ -29,12 +32,15 @@ import SocialPosts from './pages/social/SocialPosts.jsx'
 import SocialPlanner from './pages/social/SocialPlanner.jsx'
 import SocialCalendar from './pages/social/SocialCalendar.jsx'
 import Placeholder from './pages/Placeholder.jsx'
+import Profile from './pages/Profile.jsx'
 import './App.css'
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+      <ConfirmProvider>
+        <LeadsProvider>
         <Routes>
           <Route path="/" element={<LoginPage />} />
 
@@ -69,6 +75,8 @@ function App() {
             <Route path="/employees" element={<Employees />} />
             <Route path="/employees/:id" element={<EmployeeDetails />} />
 
+            <Route path="/team/sales-executives" element={<SalesExecutives />} />
+
             <Route path="/reports" element={<Reports />} />
 
             <Route path="/marketing/campaigns" element={<Placeholder title="Campaigns" />} />
@@ -79,11 +87,13 @@ function App() {
               <Route path="calendar" element={<SocialCalendar />} />
             </Route>
             <Route path="/marketing/analytics" element={<Placeholder title="Analytics" />} />
-            <Route path="/settings" element={<Placeholder title="Settings" />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </LeadsProvider>
+      </ConfirmProvider>
       </AuthProvider>
     </BrowserRouter>
   )

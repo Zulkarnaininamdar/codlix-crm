@@ -1,33 +1,13 @@
 import { useId, useState } from 'react'
+import ChartEmpty from './ChartEmpty.jsx'
 import './LeadPipeline.css'
 import './ChartTooltip.css'
-
-const stages = [
-  { label: 'New', value: 1245 },
-  { label: 'Contacted', value: 380 },
-  { label: 'Qualified', value: 42 },
-  { label: 'Meeting', value: 18 },
-  { label: 'Proposal', value: 9 },
-  { label: 'Won', value: 4 },
-]
 
 const VB_W = 1200
 const VB_H = 132
 const CENTER_Y = VB_H / 2
 const MIN_HALF_H = 9
 const MAX_HALF_H = 58
-
-// boundary volumes: entry point of every stage, plus a tapered tip after "Won"
-const boundaryValues = [...stages.map((s) => s.value), stages[stages.length - 1].value * 0.55]
-
-const scaled = boundaryValues.map((v) => Math.cbrt(v))
-const maxScaled = Math.max(...scaled)
-const halfHeights = scaled.map((v) => {
-  const t = Math.max(v / maxScaled, 0.13)
-  return MIN_HALF_H + (MAX_HALF_H - MIN_HALF_H) * t
-})
-
-const boundaryX = boundaryValues.map((_, i) => (i / (boundaryValues.length - 1)) * VB_W)
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -44,22 +24,43 @@ function curveSegments(points) {
   return d
 }
 
-const topPoints = boundaryX.map((x, i) => [x, CENTER_Y - halfHeights[i]])
-const bottomPointsRev = boundaryX
-  .map((x, i) => [x, CENTER_Y + halfHeights[i]])
-  .slice()
-  .reverse()
+/** Funnel geometry for an ordered list of { label, value } stages. */
+function buildFunnel(stages) {
+  // boundary volumes: entry point of every stage, plus a tapered tip after the last stage
+  const boundaryValues = [...stages.map((s) => s.value), stages[stages.length - 1].value * 0.55]
+  const scaled = boundaryValues.map((v) => Math.cbrt(v))
+  const maxScaled = Math.max(...scaled)
+  const halfHeights = scaled.map((v) => {
+    const t = Math.max(v / maxScaled, 0.13)
+    return MIN_HALF_H + (MAX_HALF_H - MIN_HALF_H) * t
+  })
+  const boundaryX = boundaryValues.map((_, i) => (i / (boundaryValues.length - 1)) * VB_W)
 
-const funnelPath =
-  `M ${topPoints[0][0]} ${topPoints[0][1]}` +
-  curveSegments(topPoints) +
-  ` L ${bottomPointsRev[0][0]} ${bottomPointsRev[0][1]}` +
-  curveSegments(bottomPointsRev) +
-  ' Z'
+  const topPoints = boundaryX.map((x, i) => [x, CENTER_Y - halfHeights[i]])
+  const bottomPointsRev = boundaryX
+    .map((x, i) => [x, CENTER_Y + halfHeights[i]])
+    .slice()
+    .reverse()
 
-function LeadPipeline() {
+  const funnelPath =
+    `M ${topPoints[0][0]} ${topPoints[0][1]}` +
+    curveSegments(topPoints) +
+    ` L ${bottomPointsRev[0][0]} ${bottomPointsRev[0][1]}` +
+    curveSegments(bottomPointsRev) +
+    ' Z'
+
+  return { boundaryX, halfHeights, funnelPath }
+}
+
+function LeadPipeline({ stages }) {
   const gradientId = useId()
   const [hovered, setHovered] = useState(null)
+
+  if (stages.length < 2 || stages.every((s) => s.value === 0)) {
+    return <ChartEmpty>No leads in the pipeline yet.</ChartEmpty>
+  }
+
+  const { boundaryX, halfHeights, funnelPath } = buildFunnel(stages)
 
   return (
     <div className="lead-pipeline">
@@ -122,7 +123,7 @@ function LeadPipeline() {
               <span className="chart-tooltip__dot" />
               {stages[hovered].value.toLocaleString()} leads
             </p>
-            {hovered > 0 && (
+            {hovered > 0 && stages[hovered - 1].value > 0 && (
               <p className="chart-tooltip__row">
                 <span className="chart-tooltip__dot" />
                 {((stages[hovered].value / stages[hovered - 1].value) * 100).toFixed(1)}% from {stages[hovered - 1].label}
@@ -135,7 +136,7 @@ function LeadPipeline() {
       <div className="lead-pipeline__conversions">
         {stages.slice(1).map((stage, i) => {
           const prev = stages[i].value
-          const rate = ((stage.value / prev) * 100).toFixed(1)
+          const rate = prev ? ((stage.value / prev) * 100).toFixed(1) : '0.0'
           const left = ((i + 1) / stages.length) * 100
           return (
             <span key={stage.label} className="lead-pipeline__conversion" style={{ left: `${left}%` }}>

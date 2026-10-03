@@ -38,6 +38,9 @@ const toneMap = {
   upcoming: 'soft',
   scheduled: 'soft',
   missed: 'outline',
+  // scheduled social posts
+  publishing: 'medium',
+  failed: 'outline',
   // employees
   'on leave': 'soft',
   inactive: 'outline',

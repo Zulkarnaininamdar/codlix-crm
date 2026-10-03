@@ -15,9 +15,21 @@
   color: #8a8a92;
   font-size: 0.78rem;
   font-weight: 600;
+  font-family: inherit;
+  border: none;
   clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
   margin-left: -14px;
   white-space: nowrap;
+  cursor: default;
+  transition: filter 0.15s ease;
+}
+
+.stage-tracker__seg.is-clickable {
+  cursor: pointer;
+}
+
+.stage-tracker__seg.is-clickable:hover {
+  filter: brightness(0.96);
 }
 
 .stage-tracker__seg span {

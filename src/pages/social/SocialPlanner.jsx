@@ -1,38 +1,54 @@
 import { useState } from 'react'
 import ContentPlanCard from '../../components/social/ContentPlanCard.jsx'
 import ContentPlanFormModal from '../../components/social/ContentPlanFormModal.jsx'
-import { useContentPlans } from '../../hooks/useContentPlans.js'
+import { useScheduledPosts } from '../../hooks/useScheduledPosts.js'
 import { PlusIcon } from '../../components/icons/Icons.jsx'
 
 function SocialPlanner() {
-  const { contentPlans, addPlan, deletePlan } = useContentPlans()
+  const { plans, error, loading, schedulePost, cancelPost } = useScheduledPosts()
   const [addOpen, setAddOpen] = useState(false)
+  const [actionError, setActionError] = useState('')
 
-  function handleAdd(plan) {
-    addPlan(plan)
+  async function handleAdd(payload) {
+    await schedulePost(payload)
     setAddOpen(false)
+  }
+
+  async function handleCancel(id) {
+    setActionError('')
+    try {
+      await cancelPost(id)
+    } catch (err) {
+      setActionError(err.message)
+    }
   }
 
   return (
     <div className="social-page__section">
       <div className="social-page__planner-head">
         <div>
-          <h2>Content Plans</h2>
-          <p>Draft, schedule and track upcoming Instagram posts</p>
+          <h2>Scheduled Posts</h2>
+          <p>Schedule Instagram posts and reels. They publish automatically at the chosen time.</p>
         </div>
         <button className="btn btn--primary" onClick={() => setAddOpen(true)}>
-          <PlusIcon /> New Plan
+          <PlusIcon /> New Post
         </button>
       </div>
 
-      {contentPlans.length > 0 ? (
+      {actionError && <p className="field__error">{actionError}</p>}
+
+      {loading && plans.length === 0 ? (
+        <p className="social-page__empty">Loading scheduled posts…</p>
+      ) : error ? (
+        <p className="social-page__empty">Could not load scheduled posts. {error.message}</p>
+      ) : plans.length > 0 ? (
         <div className="social-page__planner-list">
-          {contentPlans.map((plan) => (
-            <ContentPlanCard key={plan.id} plan={plan} onDelete={deletePlan} />
+          {plans.map((plan) => (
+            <ContentPlanCard key={plan.id} plan={plan} onDelete={handleCancel} />
           ))}
         </div>
       ) : (
-        <p className="social-page__empty">No content plans yet. Create one to get started.</p>
+        <p className="social-page__empty">No scheduled posts yet. Create one to get started.</p>
       )}
 
       <ContentPlanFormModal key={addOpen ? 'open' : 'closed'} open={addOpen} onClose={() => setAddOpen(false)} onSubmit={handleAdd} />

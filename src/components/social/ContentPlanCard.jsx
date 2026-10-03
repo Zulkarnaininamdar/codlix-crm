@@ -5,7 +5,6 @@ import './ContentPlanCard.css'
 
 const typeLabels = {
   image: 'Image',
-  carousel: 'Carousel',
   reel: 'Reel',
 }
 
@@ -22,15 +21,17 @@ function ContentPlanCard({ plan, onDelete }) {
           <Badge tone={statusTone(plan.status)}>{plan.status}</Badge>
         </div>
         <p className="plan-card__caption">{plan.caption}</p>
-        {plan.hashtags && <p className="plan-card__hashtags">{plan.hashtags}</p>}
+        {plan.status === 'failed' && plan.error && <p className="field__error">{plan.error}</p>}
       </div>
 
       <div className="plan-card__side">
         <span className="plan-card__date"><CalendarIcon /> {formatDate(plan.plannedDate)}</span>
         <span className="plan-card__type">{typeLabels[plan.type] ?? plan.type}</span>
-        <button type="button" className="plan-card__delete" onClick={() => onDelete(plan.id)} aria-label="Delete plan">
-          <TrashIcon />
-        </button>
+        {plan.status === 'scheduled' && onDelete && (
+          <button type="button" className="plan-card__delete" onClick={() => onDelete(plan.id)} aria-label="Cancel scheduled post">
+            <TrashIcon />
+          </button>
+        )}
       </div>
     </div>
   )

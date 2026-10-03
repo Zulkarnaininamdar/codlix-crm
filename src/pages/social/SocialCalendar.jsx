@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import Modal from '../../components/common/Modal.jsx'
 import ContentPlanCard from '../../components/social/ContentPlanCard.jsx'
 import ContentPlanFormModal from '../../components/social/ContentPlanFormModal.jsx'
-import { useContentPlans } from '../../hooks/useContentPlans.js'
+import { useScheduledPosts } from '../../hooks/useScheduledPosts.js'
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from '../../components/icons/Icons.jsx'
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -45,7 +45,7 @@ function buildGrid(year, month) {
 }
 
 function SocialCalendar() {
-  const { contentPlans, addPlan, deletePlan } = useContentPlans()
+  const { plans, schedulePost, cancelPost } = useScheduledPosts()
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -56,12 +56,12 @@ function SocialCalendar() {
 
   const plansByDate = useMemo(() => {
     const map = {}
-    contentPlans.forEach((plan) => {
+    plans.forEach((plan) => {
       if (!map[plan.plannedDate]) map[plan.plannedDate] = []
       map[plan.plannedDate].push(plan)
     })
     return map
-  }, [contentPlans])
+  }, [plans])
 
   const cells = useMemo(() => buildGrid(viewYear, viewMonth), [viewYear, viewMonth])
 
@@ -90,13 +90,13 @@ function SocialCalendar() {
     setViewMonth(today.getMonth())
   }
 
-  function handleAdd(plan) {
-    addPlan(plan)
+  async function handleAdd(payload) {
+    await schedulePost(payload)
     setPendingDate(null)
   }
 
-  function handleDelete(id) {
-    deletePlan(id)
+  async function handleDelete(id) {
+    await cancelPost(id)
     setSelectedPlan(null)
   }
 

@@ -2,24 +2,26 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { projects } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import { SearchIcon, ProjectsIcon, TrendUpIcon, CheckCircleIcon, FlagIcon, PlusIcon } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/DataTable.css'
 import './Projects.css'
 
 function Projects() {
+  const { items: projects } = useCrm('projects')
   const [search, setSearch] = useState('')
 
   const stats = useMemo(() => {
     const active = projects.filter((p) => p.status === 'Active').length
     const completed = projects.filter((p) => p.status === 'Completed').length
     const avgProgress = projects.length
-      ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
+      ? Math.round(projects.reduce((sum, p) => sum + (p.progress ?? 0), 0) / projects.length)
       : 0
     return { total: projects.length, active, completed, avgProgress }
-  }, [])
+  }, [projects])
 
   const filteredProjects = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -30,7 +32,7 @@ function Projects() {
         p.client.toLowerCase().includes(q) ||
         p.manager.toLowerCase().includes(q)
     )
-  }, [search])
+  }, [projects, search])
 
   return (
     <div className="projects-page">
@@ -41,34 +43,10 @@ function Projects() {
       </PageHeader>
 
       <div className="projects-stats">
-        <div className="projects-stat">
-          <span className="projects-stat__icon"><ProjectsIcon /></span>
-          <div>
-            <p className="projects-stat__value">{stats.total}</p>
-            <p className="projects-stat__label">Total Projects</p>
-          </div>
-        </div>
-        <div className="projects-stat">
-          <span className="projects-stat__icon"><FlagIcon /></span>
-          <div>
-            <p className="projects-stat__value">{stats.active}</p>
-            <p className="projects-stat__label">Active</p>
-          </div>
-        </div>
-        <div className="projects-stat">
-          <span className="projects-stat__icon"><CheckCircleIcon /></span>
-          <div>
-            <p className="projects-stat__value">{stats.completed}</p>
-            <p className="projects-stat__label">Completed</p>
-          </div>
-        </div>
-        <div className="projects-stat">
-          <span className="projects-stat__icon"><TrendUpIcon /></span>
-          <div>
-            <p className="projects-stat__value">{stats.avgProgress}%</p>
-            <p className="projects-stat__label">Avg. Progress</p>
-          </div>
-        </div>
+        <KpiCard label="Total Projects" value={stats.total} icon={ProjectsIcon} accent="#2a78d6" />
+        <KpiCard label="Active" value={stats.active} icon={FlagIcon} accent="#eda100" />
+        <KpiCard label="Completed" value={stats.completed} icon={CheckCircleIcon} accent="#1baf7a" />
+        <KpiCard label="Avg. Progress" value={`${stats.avgProgress}%`} icon={TrendUpIcon} accent="#eb6834" />
       </div>
 
       <div className="data-table-wrap">

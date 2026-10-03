@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { clients } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import { SearchIcon, CustomersIcon, CheckCircleIcon, ProjectsIcon, CalendarIcon } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/DataTable.css'
@@ -20,57 +21,44 @@ function isThisMonth(dateStr) {
 }
 
 function Clients() {
+  const { items: clients } = useCrm('clients')
+  const { items: projects } = useCrm('projects')
   const [search, setSearch] = useState('')
+
+  // Project counts come from the live project list, so they stay correct when projects are added or edited.
+  const projectCounts = useMemo(() => {
+    const counts = {}
+    projects.forEach((p) => {
+      if (!['Completed', 'Cancelled'].includes(p.status)) counts[p.client] = (counts[p.client] ?? 0) + 1
+    })
+    return counts
+  }, [projects])
 
   const stats = useMemo(
     () => ({
       total: clients.length,
       active: clients.filter((c) => c.status === 'Active').length,
-      projects: clients.reduce((sum, c) => sum + c.projects, 0),
+      projects: Object.values(projectCounts).reduce((sum, n) => sum + n, 0),
       newThisMonth: clients.filter((c) => isThisMonth(c.since)).length,
     }),
-    []
+    [clients, projectCounts]
   )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return clients
     return clients.filter((c) => c.company.toLowerCase().includes(q) || c.owner.toLowerCase().includes(q))
-  }, [search])
+  }, [clients, search])
 
   return (
     <div className="clients-page">
       <PageHeader title="Clients" subtitle="Companies whose proposals were accepted and converted" />
 
       <div className="clients-stats">
-        <div className="clients-stat">
-          <span className="clients-stat__icon"><CustomersIcon /></span>
-          <div>
-            <p className="clients-stat__value">{stats.total}</p>
-            <p className="clients-stat__label">Total Clients</p>
-          </div>
-        </div>
-        <div className="clients-stat">
-          <span className="clients-stat__icon"><CheckCircleIcon /></span>
-          <div>
-            <p className="clients-stat__value">{stats.active}</p>
-            <p className="clients-stat__label">Active</p>
-          </div>
-        </div>
-        <div className="clients-stat">
-          <span className="clients-stat__icon"><ProjectsIcon /></span>
-          <div>
-            <p className="clients-stat__value">{stats.projects}</p>
-            <p className="clients-stat__label">Projects Running</p>
-          </div>
-        </div>
-        <div className="clients-stat">
-          <span className="clients-stat__icon"><CalendarIcon /></span>
-          <div>
-            <p className="clients-stat__value">{stats.newThisMonth}</p>
-            <p className="clients-stat__label">New This Month</p>
-          </div>
-        </div>
+        <KpiCard label="Total Clients" value={stats.total} icon={CustomersIcon} accent="#2a78d6" />
+        <KpiCard label="Active" value={stats.active} icon={CheckCircleIcon} accent="#1baf7a" />
+        <KpiCard label="Projects Running" value={stats.projects} icon={ProjectsIcon} accent="#eb6834" />
+        <KpiCard label="New This Month" value={stats.newThisMonth} icon={CalendarIcon} accent="#eda100" />
       </div>
 
       <div className="data-table-wrap">
@@ -114,7 +102,7 @@ function Clients() {
                   </td>
                   <td className="data-table__muted">{c.since}</td>
                   <td className="data-table__muted">{c.owner}</td>
-                  <td className="data-table__muted">{c.projects}</td>
+                  <td className="data-table__muted">{projectCounts[c.company] ?? 0}</td>
                   <td className="data-table__strong">{c.revenue}</td>
                   <td><Badge tone={statusTone(c.status)}>{c.status}</Badge></td>
                   <td><Link to={`/clients/${c.id}`} className="data-table__link">View</Link></td>

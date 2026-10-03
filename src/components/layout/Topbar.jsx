@@ -6,7 +6,7 @@ import {
   CloseIcon,
   UserIcon,
   LogoutIcon,
-  SettingsIcon,
+  MenuIcon,
 } from '../icons/Icons.jsx'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import './Topbar.css'
@@ -15,38 +15,8 @@ function initials(name) {
   return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 }
 
-const initialNotifications = [
-  {
-    id: 1,
-    message: 'Aarav Shah submitted a new inquiry from your website. Assign to a rep?',
-    read: false,
-  },
-  {
-    id: 2,
-    message: "Your LinkedIn Ads — Q3 Outreach campaign reached 75% of today's budget limit.",
-    read: false,
-  },
-  {
-    id: 3,
-    message: 'Lead #LD-2374 reopened the TechNova proposal twice in the past hour.',
-    read: false,
-  },
-  {
-    id: 4,
-    message: 'Nexa Ltd viewed your proposal 3 times today.',
-    read: true,
-  },
-  {
-    id: 5,
-    message: "Only 2 seats remaining in tomorrow's product demo. Consider sending reminders.",
-    read: true,
-  },
-  {
-    id: 6,
-    message: 'Interest in enterprise plans surged this week. A follow-up email is ready to send.',
-    read: true,
-  },
-]
+// No notification feed is connected yet, so the panel starts empty.
+const initialNotifications = []
 
 function useClickOutside(ref, onOutside) {
   useEffect(() => {
@@ -81,14 +51,11 @@ function Topbar({ onMenuClick }) {
 
   return (
     <header className="topbar">
-      <button className="topbar__menu-btn" onClick={onMenuClick} aria-label="Toggle menu">
-        <span />
-        <span />
-        <span />
+      <button className="topbar__icon-btn topbar__menu-btn" onClick={onMenuClick} aria-label="Toggle menu">
+        <MenuIcon />
       </button>
 
       <div className="topbar__heading">
-        <span className="topbar__heading-dot" />
         {user?.department}
       </div>
 
@@ -183,11 +150,14 @@ function Topbar({ onMenuClick }) {
           </button>
           {profileOpen && (
             <div className="topbar__menu">
-              <button className="topbar__menu-item">
+              <button
+                className="topbar__menu-item"
+                onClick={() => {
+                  setProfileOpen(false)
+                  navigate('/profile')
+                }}
+              >
                 <UserIcon className="topbar__menu-icon" /> My Profile
-              </button>
-              <button className="topbar__menu-item">
-                <SettingsIcon className="topbar__menu-icon" /> Settings
               </button>
               <button
                 className="topbar__menu-item"

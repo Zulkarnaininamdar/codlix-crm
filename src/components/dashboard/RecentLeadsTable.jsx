@@ -1,15 +1,8 @@
+import ChartEmpty from './ChartEmpty.jsx'
 import './RecentLeadsTable.css'
 
-const rows = [
-  { name: 'Aarav Shah', company: 'TechNova Pvt Ltd', source: 'LinkedIn', value: '₹2.4L', stage: 'Qualified', date: 'Today' },
-  { name: 'Meera Nair', company: 'Orbit Systems', source: 'Website', value: '₹1.1L', stage: 'New', date: 'Today' },
-  { name: 'Kabir Malhotra', company: 'Zenith Retail', source: 'Referral', value: '₹3.8L', stage: 'Proposal', date: 'Yesterday' },
-  { name: 'Sneha Kulkarni', company: 'Nexa Ltd', source: 'Cold Email', value: '₹90K', stage: 'Contacted', date: 'Yesterday' },
-  { name: 'Vikram Rao', company: 'Vertex Solutions', source: 'WhatsApp', value: '₹5.2L', stage: 'Won', date: '2 days ago' },
-]
-
 function initials(name) {
-  return name
+  return (name ?? '?')
     .split(' ')
     .map((p) => p[0])
     .slice(0, 2)
@@ -17,7 +10,22 @@ function initials(name) {
     .toUpperCase()
 }
 
-function RecentLeadsTable() {
+function dayLabel(isoDate) {
+  if (!isoDate) return ''
+  const today = new Date()
+  const key = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)
+  const date = new Date(`${isoDate}T00:00:00`)
+  if (key(date) === key(today)) return 'Today'
+  if (key(date) === key(yesterday)) return 'Yesterday'
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
+
+/** Newest leads first. `leads` comes from the API already sorted by creation date. */
+function RecentLeadsTable({ leads, onConvert }) {
+  const rows = leads.slice(0, 5)
+  if (rows.length === 0) return <ChartEmpty>No leads yet. New leads will appear here.</ChartEmpty>
+
   return (
     <div className="recent-leads">
       <table>
@@ -32,24 +40,29 @@ function RecentLeadsTable() {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.name}>
+            <tr key={row.id}>
               <td>
                 <div className="recent-leads__who">
-                  <span className="recent-leads__avatar">{initials(row.name)}</span>
+                  <span className="recent-leads__avatar">{initials(row.contactName || row.company)}</span>
                   <div>
-                    <p className="recent-leads__name">{row.name}</p>
+                    <p className="recent-leads__name">{row.contactName || row.company}</p>
                     <p className="recent-leads__company">{row.company}</p>
                   </div>
                 </div>
               </td>
-              <td className="recent-leads__muted">{row.source}</td>
-              <td className="recent-leads__value">{row.value}</td>
+              <td className="recent-leads__muted">{row.source || '—'}</td>
+              <td className="recent-leads__value">{row.budget || '—'}</td>
               <td>
-                <span className={`recent-leads__stage recent-leads__stage--${row.stage.toLowerCase()}`}>
-                  {row.stage}
+                <span className={`recent-leads__stage recent-leads__stage--${(row.status || '').toLowerCase()}`}>
+                  {row.status}
                 </span>
+                {row.status === 'Won' && !row.convertedClientId && onConvert && (
+                  <button type="button" className="btn btn--primary btn--sm recent-leads__convert" onClick={() => onConvert(row)}>
+                    Convert to Client
+                  </button>
+                )}
               </td>
-              <td className="recent-leads__muted">{row.date}</td>
+              <td className="recent-leads__muted">{dayLabel(row.createdAt)}</td>
             </tr>
           ))}
         </tbody>

@@ -3,8 +3,10 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import Tabs from '../components/common/Tabs.jsx'
 import Modal from '../components/common/Modal.jsx'
 import Badge from '../components/common/Badge.jsx'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { meetings as initialMeetings, leads } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   PlusIcon,
   ChevronRightIcon,
@@ -20,6 +22,7 @@ import {
   NoteIcon,
   CheckCircleIcon,
   MeetingsIcon,
+  TrashIcon,
 } from '../components/icons/Icons.jsx'
 import '../components/common/PageHeader.css'
 import '../components/common/Button.css'
@@ -27,6 +30,7 @@ import '../components/common/DataTable.css'
 import '../components/common/Form.css'
 import '../components/common/Badge.css'
 import './Meetings.css'
+import { useConfirm } from '../components/common/ConfirmProvider.jsx'
 
 const views = [
   { value: 'calendar', label: 'Calendar' },
@@ -89,9 +93,12 @@ function buildCalendarDays(year, month) {
 }
 
 function Meetings() {
-  const [meetings, setMeetings] = useState(initialMeetings)
+  const confirm = useConfirm()
+  const { leads } = useLeads()
+  const { items: meetings, create, update, remove } = useCrm('meetings')
   const [view, setView] = useState('calendar')
   const [newOpen, setNewOpen] = useState(false)
+  const [formError, setFormError] = useState('')
   const [form, setForm] = useState(emptyForm)
   const [selected, setSelected] = useState(null)
   const [dayView, setDayView] = useState(null)
@@ -150,23 +157,37 @@ function Meetings() {
     setOutcome({ outcome: m.outcome, nextAction: m.nextAction, nextFollowup: m.nextFollowup })
   }
 
-  function saveOutcome() {
-    setMeetings((prev) => prev.map((m) => (m.id === selected.id ? { ...m, ...outcome } : m)))
+  async function deleteMeeting(id) {
+    if (!(await confirm({ title: 'Delete meeting?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return
+    await remove(id)
     setSelected(null)
   }
 
-  function createMeeting(e) {
+  async function saveOutcome() {
+    await update(selected.id, outcome)
+    setSelected(null)
+  }
+
+  async function createMeeting(e) {
     e.preventDefault()
-    if (!form.title.trim() || !form.lead.trim()) return
-    const next = {
-      id: `m-${Date.now()}`,
-      ...form,
-      participants: form.participants.split(',').map((p) => p.trim()).filter(Boolean),
-      outcome: '',
-      nextAction: '',
-      nextFollowup: '',
+    if (!form.title.trim()) return setFormError('Meeting title is required.')
+    if (!form.lead.trim()) return setFormError('Select the lead or company this meeting is for.')
+    if (!form.date) return setFormError('Pick a date for the meeting.')
+    setFormError('')
+    const linkedLead = leads.find((l) => l.company === form.lead)
+    try {
+      await create({
+        ...form,
+        leadId: linkedLead?.id,
+        participants: form.participants.split(',').map((p) => p.trim()).filter(Boolean),
+        outcome: '',
+        nextAction: '',
+        nextFollowup: '',
+      })
+    } catch (err) {
+      setFormError(err.message || 'Could not schedule this meeting.')
+      return
     }
-    setMeetings((prev) => [next, ...prev])
     setForm(emptyForm)
     setNewOpen(false)
   }
@@ -190,34 +211,10 @@ function Meetings() {
       </PageHeader>
 
       <div className="meetings-stats">
-        <div className="meetings-stat">
-          <span className="meetings-stat__icon"><MeetingsIcon /></span>
-          <div>
-            <p className="meetings-stat__value">{stats.today}</p>
-            <p className="meetings-stat__label">Today</p>
-          </div>
-        </div>
-        <div className="meetings-stat">
-          <span className="meetings-stat__icon"><CalendarIcon /></span>
-          <div>
-            <p className="meetings-stat__value">{stats.week}</p>
-            <p className="meetings-stat__label">This Week</p>
-          </div>
-        </div>
-        <div className="meetings-stat">
-          <span className="meetings-stat__icon"><FollowupsIcon /></span>
-          <div>
-            <p className="meetings-stat__value">{stats.upcoming}</p>
-            <p className="meetings-stat__label">Upcoming</p>
-          </div>
-        </div>
-        <div className="meetings-stat">
-          <span className="meetings-stat__icon"><CheckCircleIcon /></span>
-          <div>
-            <p className="meetings-stat__value">{stats.completed}</p>
-            <p className="meetings-stat__label">Completed</p>
-          </div>
-        </div>
+        <KpiCard label="Today" value={stats.today} icon={MeetingsIcon} accent="#2a78d6" />
+        <KpiCard label="This Week" value={stats.week} icon={CalendarIcon} accent="#eb6834" />
+        <KpiCard label="Upcoming" value={stats.upcoming} icon={FollowupsIcon} accent="#eda100" />
+        <KpiCard label="Completed" value={stats.completed} icon={CheckCircleIcon} accent="#1baf7a" />
       </div>
 
       <div className="meetings-toolbar">
@@ -447,6 +444,7 @@ function Meetings() {
               <textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Optional internal notes" />
             </div>
           </div>
+          {formError && <p className="field__error">{formError}</p>}
           <div className="form-actions">
             <button type="button" className="btn btn--ghost" onClick={() => setNewOpen(false)}>Cancel</button>
             <button type="submit" className="btn btn--primary">Schedule Meeting</button>
@@ -529,7 +527,12 @@ function Meetings() {
                   onChange={(e) => setOutcome((p) => ({ ...p, nextFollowup: e.target.value }))}
                 />
               </div>
-              <button className="btn btn--primary btn--block" onClick={saveOutcome}>Save Outcome</button>
+              <div className="meeting-detail-actions">
+                <button className="btn btn--ghost" onClick={() => deleteMeeting(selected.id)}>
+                  <TrashIcon /> Delete Meeting
+                </button>
+                <button className="btn btn--primary btn--block" onClick={saveOutcome}>Save Outcome</button>
+              </div>
             </div>
           </>
         )}

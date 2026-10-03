@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import logo from '../../assets/codlix-logo.png'
 import { ChevronDownIcon } from '../icons/Icons.jsx'
-import { navConfig, socialManagerNavConfig } from './navConfig.js'
+import { navConfig, socialManagerNavConfig, salesManagerNavConfig } from './navConfig.js'
 import { useAuth } from '../../auth/AuthContext.jsx'
 import './Sidebar.css'
 
@@ -13,7 +13,12 @@ function groupContainsPath(group, pathname) {
 function Sidebar() {
   const location = useLocation()
   const { user } = useAuth()
-  const items = user?.role === 'social-media-manager' ? socialManagerNavConfig : navConfig
+  const items =
+    user?.role === 'social-media-manager'
+      ? socialManagerNavConfig
+      : user?.role === 'sales-manager'
+        ? salesManagerNavConfig
+        : navConfig
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = {}
     items.forEach((item) => {

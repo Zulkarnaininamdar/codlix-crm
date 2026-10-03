@@ -159,6 +159,18 @@ export const InstagramIcon = (p) => (
   </svg>
 )
 
+export const FacebookIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <path d="M14.5 21v-7.5h2.5l.5-3h-3V8.5c0-.9.3-1.5 1.6-1.5H17.5V4.3C17.2 4.3 16.2 4 15 4c-2.4 0-4 1.5-4 4.2V10.5H8.5v3H11V21" />
+  </svg>
+)
+
+export const StarIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <path d="M12 3.5 14.6 9l6 .9-4.3 4.2 1 6-5.3-2.8-5.3 2.8 1-6-4.3-4.2 6-.9Z" strokeLinejoin="round" />
+  </svg>
+)
+
 export const HeartIcon = (p) => (
   <svg viewBox="0 0 24 24" {...base} {...p}>
     <path d="M12 20s-7.5-4.6-9.8-9.3C.6 7.2 2.3 4 5.6 4c2 0 3.3 1 4.4 2.4C11.1 5 12.4 4 14.4 4c3.3 0 5 3.2 3.4 6.7C15.5 15.4 12 20 12 20Z" />
@@ -175,6 +187,12 @@ export const SearchIcon = (p) => (
   <svg viewBox="0 0 24 24" {...base} {...p}>
     <circle cx="11" cy="11" r="6.5" />
     <path d="m20 20-3.7-3.7" />
+  </svg>
+)
+
+export const MenuIcon = (p) => (
+  <svg viewBox="0 0 24 24" {...base} {...p}>
+    <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
   </svg>
 )
 

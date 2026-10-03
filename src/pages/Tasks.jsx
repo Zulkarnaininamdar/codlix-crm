@@ -3,7 +3,7 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import Modal from '../components/common/Modal.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { tasks as initialTasks, projects } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import {
   ListViewIcon,
   KanbanIcon,
@@ -27,12 +27,13 @@ function initials(name) {
 }
 
 function Tasks() {
-  const [tasks, setTasks] = useState(initialTasks)
+  const { items: tasks, update } = useCrm('tasks')
+  const { items: projects } = useCrm('projects')
   const [selected, setSelected] = useState(null)
   const [view, setView] = useState('timeline')
 
-  function updateStatus(id, status) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
+  async function updateStatus(id, status) {
+    await update(id, { status })
     setSelected((prev) => (prev && prev.id === id ? { ...prev, status } : prev))
   }
 

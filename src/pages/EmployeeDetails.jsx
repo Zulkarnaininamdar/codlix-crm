@@ -4,15 +4,13 @@ import KpiCard from '../components/dashboard/KpiCard.jsx'
 import ChartTooltip from '../components/dashboard/ChartTooltip.jsx'
 import Badge from '../components/common/Badge.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { employees, employeeStats, leads } from '../data/mockData.js'
+import { pipelineStages } from '../data/pipeline.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   LeadsIcon,
   FollowupsIcon,
-  MeetingsIcon,
-  ProposalsIcon,
   SalesIcon,
-  BudgetIcon,
   MailIcon,
   PhoneIcon,
   MapPinIcon,
@@ -25,19 +23,33 @@ import '../components/common/Badge.css'
 import '../components/common/DataTable.css'
 import './EmployeeDetails.css'
 
-const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+const QUALIFIED_INDEX = pipelineStages.indexOf('Qualified')
 
-function buildTrend(seed) {
-  return months.map((month, i) => ({
-    month,
-    deals: Math.max(1, Math.round(seed * (0.5 + i * 0.12) * (0.85 + (i % 2) * 0.2))),
-  }))
+/** Leads this employee owns, counted per month of creation over the last six months. */
+function monthlyLeadIntake(employeeLeads) {
+  const now = new Date()
+  return Array.from({ length: 6 }, (_, i) => {
+    const month = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    const key = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`
+    return {
+      month: month.toLocaleDateString('en-IN', { month: 'short' }),
+      leads: employeeLeads.filter((l) => (l.createdAt ?? '').startsWith(key)).length,
+    }
+  })
 }
 
 function EmployeeDetails() {
   const { id } = useParams()
+  const { leads, employees, loaded } = useLeads()
   const employee = employees.find((e) => e.id === id)
-  const stats = employeeStats[id]
+
+  if (!loaded) {
+    return (
+      <div className="employee-details-page">
+        <p className="employee-details__empty">Loading employee…</p>
+      </div>
+    )
+  }
 
   if (!employee) {
     return (
@@ -49,7 +61,12 @@ function EmployeeDetails() {
   }
 
   const employeeLeads = leads.filter((l) => l.assignedTo === id)
-  const trend = buildTrend(Math.max(2, stats.won))
+  const stats = {
+    leads: employeeLeads.length,
+    qualified: employeeLeads.filter((l) => pipelineStages.indexOf(l.status) >= QUALIFIED_INDEX).length,
+    won: employeeLeads.filter((l) => l.status === 'Won').length,
+  }
+  const trend = monthlyLeadIntake(employeeLeads)
 
   return (
     <div className="employee-details-page">
@@ -98,20 +115,17 @@ function EmployeeDetails() {
       <div className="employee-details__kpis">
         <KpiCard label="Leads" value={stats.leads} icon={LeadsIcon} />
         <KpiCard label="Qualified" value={stats.qualified} icon={FollowupsIcon} />
-        <KpiCard label="Meetings" value={stats.meetings} icon={MeetingsIcon} />
-        <KpiCard label="Proposals" value={stats.proposals} icon={ProposalsIcon} />
         <KpiCard label="Won" value={stats.won} icon={SalesIcon} />
-        <KpiCard label="Revenue" value={stats.revenue} icon={BudgetIcon} />
       </div>
 
       <div className="employee-details__card">
-        <h3>Performance — Deals Closed per Month</h3>
+        <h3>Leads Added — Last 6 Months</h3>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={trend} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
             <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#8a8a92', fontSize: 12.5 }} />
-            <YAxis tickLine={false} axisLine={false} tick={{ fill: '#8a8a92', fontSize: 12.5 }} width={30} />
-            <Tooltip cursor={{ fill: 'rgba(100,72,244,0.06)' }} content={<ChartTooltip formatter={(v) => `${v} deals`} />} />
-            <Bar dataKey="deals" fill="#6448F4" radius={[6, 6, 0, 0]} barSize={30} />
+            <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: '#8a8a92', fontSize: 12.5 }} width={30} />
+            <Tooltip cursor={{ fill: 'rgba(100,72,244,0.06)' }} content={<ChartTooltip formatter={(v) => `${v} leads`} />} />
+            <Bar dataKey="leads" fill="#6448F4" radius={[6, 6, 0, 0]} barSize={30} />
           </BarChart>
         </ResponsiveContainer>
       </div>

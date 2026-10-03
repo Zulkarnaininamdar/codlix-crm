@@ -1,18 +1,13 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import ChartTooltip from './ChartTooltip.jsx'
+import ChartEmpty from './ChartEmpty.jsx'
 
-const data = [
-  { month: 'Jan', revenue: 8.2 },
-  { month: 'Feb', revenue: 9.1 },
-  { month: 'Mar', revenue: 8.7 },
-  { month: 'Apr', revenue: 10.4 },
-  { month: 'May', revenue: 11.8 },
-  { month: 'Jun', revenue: 11.2 },
-  { month: 'Jul', revenue: 13.5 },
-  { month: 'Aug', revenue: 14.9 },
-]
+/** `data` is [{ month, revenue }] with revenue in lakhs. Empty until deal values are recorded. */
+function MonthlyRevenueChart({ data }) {
+  if (!data || data.length === 0) {
+    return <ChartEmpty>Revenue will appear here once won deals have values recorded.</ChartEmpty>
+  }
 
-function MonthlyRevenueChart() {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: -12 }}>

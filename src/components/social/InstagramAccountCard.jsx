@@ -6,10 +6,19 @@ function initials(name) {
   return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
 }
 
-function InstagramAccountCard({ account }) {
+function formatSynced(iso) {
+  if (!iso) return 'Not synced yet'
+  return `Last synced ${new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+}
+
+function InstagramAccountCard({ account, onSync, onDisconnect, syncing }) {
   return (
     <div className="ig-account-card">
-      <div className="ig-account-card__avatar">{initials(account.name)}</div>
+      {account.profilePictureUrl ? (
+        <img className="ig-account-card__photo" src={account.profilePictureUrl} alt="" />
+      ) : (
+        <div className="ig-account-card__avatar">{initials(account.name)}</div>
+      )}
 
       <div className="ig-account-card__info">
         <div className="ig-account-card__row">
@@ -19,12 +28,13 @@ function InstagramAccountCard({ account }) {
             <CheckCircleIcon /> Connected
           </Badge>
         </div>
-        <p className="ig-account-card__bio">{account.bio}</p>
+        {account.biography && <p className="ig-account-card__bio">{account.biography}</p>}
+        <p className="ig-account-card__synced">{formatSynced(account.lastSyncedAt)}</p>
       </div>
 
       <div className="ig-account-card__stats">
         <div>
-          <p>{account.postsCount}</p>
+          <p>{account.postsCount.toLocaleString()}</p>
           <span>Posts</span>
         </div>
         <div>
@@ -35,6 +45,15 @@ function InstagramAccountCard({ account }) {
           <p>{account.following.toLocaleString()}</p>
           <span>Following</span>
         </div>
+      </div>
+
+      <div className="ig-account-card__actions">
+        <button type="button" className="btn btn--secondary btn--sm" onClick={onSync} disabled={syncing}>
+          {syncing ? 'Syncing…' : 'Sync now'}
+        </button>
+        <button type="button" className="btn btn--ghost btn--sm" onClick={onDisconnect}>
+          Disconnect
+        </button>
       </div>
     </div>
   )

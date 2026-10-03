@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { companies, employees, projects } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   ProjectsIcon,
@@ -19,7 +20,7 @@ function todayISO() {
 }
 
 function nextProjectId() {
-  return `p-${projects.length + 1}`
+  return 'Assigned on save'
 }
 
 function initials(name) {
@@ -31,7 +32,7 @@ function initials(name) {
 const initialForm = {
   name: '',
   client: '',
-  manager: employees[0]?.name ?? '',
+  manager: '',
   startDate: todayISO(),
   endDate: '',
 }
@@ -45,9 +46,13 @@ const requiredFields = [
 
 function ProjectNew() {
   const navigate = useNavigate()
+  const { employees } = useLeads()
+  const { items: companies } = useCrm('companies')
+  const { create: saveProject } = useCrm('projects')
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const projectId = useMemo(() => nextProjectId(), [])
 
   function set(key, value) {
@@ -57,7 +62,7 @@ function ProjectNew() {
   const completedCount = requiredFields.filter((f) => form[f.key].trim()).length
   const progress = Math.round((completedCount / requiredFields.length) * 100)
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const nextErrors = {}
     if (!form.name.trim()) nextErrors.name = 'Project name is required.'
@@ -68,10 +73,23 @@ function ProjectNew() {
     if (Object.keys(nextErrors).length > 0) return
 
     setSaving(true)
-    setTimeout(() => {
-      setSaving(false)
+    setSubmitError('')
+    try {
+      await saveProject({
+        name: form.name,
+        client: form.client,
+        manager: form.manager,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        progress: 0,
+        status: 'Active',
+      })
       navigate('/projects')
-    }, 900)
+    } catch (err) {
+      setSubmitError(err.message || 'Could not save the project.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -118,6 +136,7 @@ function ProjectNew() {
                 <div className="field">
                   <label>Project Manager<span className="required">*</span></label>
                   <select value={form.manager} onChange={(e) => set('manager', e.target.value)}>
+                    <option value="">Select manager</option>
                     {employees.map((emp) => (
                       <option key={emp.id} value={emp.name}>{emp.name} — {emp.role}</option>
                     ))}
@@ -136,6 +155,8 @@ function ProjectNew() {
               </div>
             </div>
           </div>
+
+          {submitError && <p className="field__error">{submitError}</p>}
 
           <div className="form-actions lead-new__mobile-actions">
             <Link to="/projects" className="btn btn--ghost">Cancel</Link>

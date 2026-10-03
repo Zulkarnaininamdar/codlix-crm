@@ -4,7 +4,8 @@ import Tabs from '../components/common/Tabs.jsx'
 import Badge from '../components/common/Badge.jsx'
 import Drawer from '../components/common/Drawer.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { projects, tasks, employees, companies } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   FolderIcon,
@@ -45,18 +46,19 @@ function initials(name) {
 
 function ProjectDetails() {
   const { id } = useParams()
+  const { employees } = useLeads()
+  const { items: projects, update: updateProject } = useCrm('projects')
+  const { items: projectTasks, create: createTask } = useCrm('tasks', { parentId: id })
+  const { items: companies } = useCrm('companies')
   const [tab, setTab] = useState('overview')
   const project = projects.find((p) => p.id === id)
 
-  const [extraTasks, setExtraTasks] = useState([])
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false)
   const [taskForm, setTaskForm] = useState(emptyTask)
 
-  const [extraTeam, setExtraTeam] = useState([])
   const [teamDrawerOpen, setTeamDrawerOpen] = useState(false)
   const [teamMemberId, setTeamMemberId] = useState('')
 
-  const [files, setFiles] = useState([])
   const [fileDrawerOpen, setFileDrawerOpen] = useState(false)
   const [fileName, setFileName] = useState('')
 
@@ -69,52 +71,50 @@ function ProjectDetails() {
     )
   }
 
-  const projectTasks = [...tasks.filter((t) => t.project === project.name), ...extraTasks]
+  const teamIds = project.teamIds ?? []
+  const files = project.files ?? []
   const baseTeam = employees.filter((e) => [project.manager, ...projectTasks.map((t) => t.assignee)].includes(e.name))
-  const team = [...baseTeam, ...extraTeam.filter((e) => !baseTeam.some((b) => b.id === e.id))]
+  const team = [...baseTeam, ...employees.filter((e) => teamIds.includes(e.id) && !baseTeam.some((b) => b.id === e.id))]
   const availableEmployees = employees.filter((e) => !team.some((m) => m.id === e.id))
   const relatedCompany = companies.find((c) => c.name === project.client)
   const completedTasks = projectTasks.filter((t) => t.status === 'Completed').length
 
-  function addTask(e) {
+  async function addTask(e) {
     e.preventDefault()
     if (!taskForm.title.trim() || !taskForm.assignee) return
-    setExtraTasks((prev) => [
-      ...prev,
-      {
-        id: `t-${project.id}-${Date.now()}`,
-        title: taskForm.title,
-        assignee: taskForm.assignee,
-        priority: taskForm.priority,
-        dueDate: taskForm.dueDate || '—',
-        status: 'To Do',
-        comments: 0,
-        project: project.name,
-      },
-    ])
+    await createTask({
+      title: taskForm.title,
+      projectId: project.id,
+      project: project.name,
+      assignee: taskForm.assignee,
+      priority: taskForm.priority,
+      dueDate: taskForm.dueDate || '—',
+      status: 'To Do',
+      comments: 0,
+    })
     setTaskForm(emptyTask)
     setTaskDrawerOpen(false)
   }
 
-  function addTeamMember(e) {
+  async function addTeamMember(e) {
     e.preventDefault()
-    const employee = employees.find((emp) => emp.id === teamMemberId)
-    if (!employee) return
-    setExtraTeam((prev) => [...prev, employee])
+    if (!teamMemberId) return
+    await updateProject(project.id, { teamIds: [...teamIds, teamMemberId] })
     setTeamMemberId('')
     setTeamDrawerOpen(false)
   }
 
-  function addFile(e) {
+  async function addFile(e) {
     e.preventDefault()
     if (!fileName.trim()) return
-    setFiles((prev) => [{ id: `file-${Date.now()}`, name: fileName.trim(), addedAt: 'Just now' }, ...prev])
+    const entry = { id: `file-${Date.now()}`, name: fileName.trim(), addedAt: new Date().toLocaleDateString('en-IN') }
+    await updateProject(project.id, { files: [entry, ...files] })
     setFileName('')
     setFileDrawerOpen(false)
   }
 
-  function removeFile(fileId) {
-    setFiles((prev) => prev.filter((f) => f.id !== fileId))
+  async function removeFile(fileId) {
+    await updateProject(project.id, { files: files.filter((f) => f.id !== fileId) })
   }
 
   return (

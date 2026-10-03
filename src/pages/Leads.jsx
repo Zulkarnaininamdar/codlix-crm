@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import Drawer from '../components/common/Drawer.jsx'
+import KpiCard from '../components/dashboard/KpiCard.jsx'
 import TableFooter from '../components/common/TableFooter.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { leads as initialLeads, employees, employeeName } from '../data/mockData.js'
+import { useAuth } from '../auth/AuthContext.jsx'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   SearchIcon,
   FilterIcon,
@@ -31,20 +33,16 @@ const priorityRank = { Low: 0, Medium: 1, High: 2, Urgent: 3 }
 const statusRank = Object.fromEntries(statuses.map((s, i) => [s, i]))
 const PAGE_SIZE = 6
 
-const emptyFilters = { status: '', source: '', employee: '', priority: '', date: '' }
+const emptyFilters = { status: '', source: '', industry: '', employee: '', priority: '', date: '' }
 
 const columns = [
   { key: 'company', label: 'Company', sortable: true },
   { key: 'contactName', label: 'Contact', sortable: true },
   { key: 'priority', label: 'Priority', sortable: true },
   { key: 'status', label: 'Status', sortable: true },
-  { key: 'assignedTo', label: 'Assigned', sortable: true },
+  { key: 'assignedTo', label: 'Assigned', sortable: false },
   { key: 'action', label: 'Action', sortable: false },
 ]
-
-function initials(name) {
-  return name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
-}
 
 function withinDateFilter(lead, date) {
   if (!date) return true
@@ -61,13 +59,14 @@ function compareBy(key) {
   return (a, b) => {
     if (key === 'priority') return priorityRank[a.priority] - priorityRank[b.priority]
     if (key === 'status') return statusRank[a.status] - statusRank[b.status]
-    if (key === 'assignedTo') return employeeName(a.assignedTo).localeCompare(employeeName(b.assignedTo))
     return String(a[key]).localeCompare(String(b[key]))
   }
 }
 
 function Leads() {
-  const [rows, setRows] = useState(initialLeads)
+  const { user } = useAuth()
+  const { leads: rows, employees, updateLead, removeLeads } = useLeads()
+  const employeeName = (id) => employees.find((e) => e.id === id)?.name ?? id
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState(emptyFilters)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -76,6 +75,11 @@ function Leads() {
   const [selected, setSelected] = useState(() => new Set())
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length
+
+  const industries = useMemo(
+    () => Array.from(new Set(rows.map((l) => l.industry).filter(Boolean))).sort(),
+    [rows]
+  )
 
   const stats = useMemo(
     () => ({
@@ -93,13 +97,18 @@ function Leads() {
       const matchesSearch =
         !q ||
         lead.company.toLowerCase().includes(q) ||
-        lead.contactName.toLowerCase().includes(q) ||
-        lead.email.toLowerCase().includes(q)
+        (lead.contactName ?? '').toLowerCase().includes(q) ||
+        (lead.email ?? '').toLowerCase().includes(q)
+
+      const visibleToUser =
+        user?.role !== 'sales-executive' || lead.createdBy === user.employeeId
 
       return (
+        visibleToUser &&
         matchesSearch &&
         (!filters.status || lead.status === filters.status) &&
         (!filters.source || lead.source === filters.source) &&
+        (!filters.industry || lead.industry === filters.industry) &&
         (!filters.employee || lead.assignedTo === filters.employee) &&
         (!filters.priority || lead.priority === filters.priority) &&
         withinDateFilter(lead, filters.date)
@@ -112,7 +121,7 @@ function Leads() {
     }
 
     return list
-  }, [rows, search, filters, sort])
+  }, [rows, search, filters, sort, user])
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE))
   const pageRows = filteredLeads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -158,8 +167,12 @@ function Leads() {
   }
 
   function deleteSelected() {
-    setRows((prev) => prev.filter((l) => !selected.has(l.id)))
+    removeLeads([...selected])
     setSelected(new Set())
+  }
+
+  function reassignLead(id, assignedTo) {
+    updateLead(id, { assignedTo })
   }
 
   return (
@@ -171,34 +184,10 @@ function Leads() {
       </PageHeader>
 
       <div className="leads-stats">
-        <div className="leads-stat">
-          <span className="leads-stat__icon"><LeadsIcon /></span>
-          <div>
-            <p className="leads-stat__value">{stats.total}</p>
-            <p className="leads-stat__label">Total Leads</p>
-          </div>
-        </div>
-        <div className="leads-stat">
-          <span className="leads-stat__icon"><ContactsIcon /></span>
-          <div>
-            <p className="leads-stat__value">{stats.new}</p>
-            <p className="leads-stat__label">New</p>
-          </div>
-        </div>
-        <div className="leads-stat">
-          <span className="leads-stat__icon"><FollowupsIcon /></span>
-          <div>
-            <p className="leads-stat__value">{stats.qualified}</p>
-            <p className="leads-stat__label">Qualified</p>
-          </div>
-        </div>
-        <div className="leads-stat">
-          <span className="leads-stat__icon"><SalesIcon /></span>
-          <div>
-            <p className="leads-stat__value">{stats.won}</p>
-            <p className="leads-stat__label">Won</p>
-          </div>
-        </div>
+        <KpiCard label="Total Leads" value={stats.total} icon={LeadsIcon} accent="#2a78d6" />
+        <KpiCard label="New" value={stats.new} icon={ContactsIcon} accent="#eb6834" />
+        <KpiCard label="Qualified" value={stats.qualified} icon={FollowupsIcon} accent="#1baf7a" />
+        <KpiCard label="Won" value={stats.won} icon={SalesIcon} accent="#eda100" />
       </div>
 
       <div className="data-table-wrap">
@@ -292,15 +281,29 @@ function Leads() {
                     <Badge tone={statusTone(lead.status)}>{lead.status}</Badge>
                   </td>
                   <td>
-                    <div className="data-table__who">
-                      <span className="data-table__avatar">{initials(employeeName(lead.assignedTo))}</span>
-                      <p className="data-table__primary">{employeeName(lead.assignedTo)}</p>
-                    </div>
+                    {user?.role === 'sales-manager' ? (
+                      <select
+                        className="leads-assign-select"
+                        value={lead.assignedTo || ''}
+                        onChange={(e) => reassignLead(lead.id, e.target.value)}
+                      >
+                        <option value="">Unassigned</option>
+                        {employees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="data-table__muted">{employeeName(lead.assignedTo)}</span>
+                    )}
                   </td>
                   <td>
-                    <Link to={`/leads/${lead.id}`} className="data-table__link">
-                      View
-                    </Link>
+                    <div className="data-table__actions">
+                      <Link to={`/leads/${lead.id}`} className="data-table__link">
+                        View
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -347,6 +350,16 @@ function Leads() {
             <option value="">Any source</option>
             {sources.map((s) => (
               <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Industry</label>
+          <select value={filters.industry} onChange={(e) => updateFilter('industry', e.target.value)}>
+            <option value="">Any industry</option>
+            {industries.map((i) => (
+              <option key={i} value={i}>{i}</option>
             ))}
           </select>
         </div>

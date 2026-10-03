@@ -234,6 +234,12 @@
   text-decoration: underline;
 }
 
+.data-table__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
 .data-table__empty {
   padding: 3.5rem 1rem;
   text-align: center;

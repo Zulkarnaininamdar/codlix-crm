@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import Tabs from '../components/common/Tabs.jsx'
 import Badge from '../components/common/Badge.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { companies, leads, contactsByCompany, proposals, projects } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   ArrowLeftIcon,
   BuildingIcon,
@@ -37,6 +38,11 @@ function initials(name) {
 
 function CompanyDetails() {
   const { id } = useParams()
+  const { leads } = useLeads()
+  const { items: companies } = useCrm('companies')
+  const { items: companyContacts } = useCrm('contacts', { parentId: id })
+  const { items: proposals } = useCrm('proposals')
+  const { items: projects } = useCrm('projects')
   const [section, setSection] = useState('info')
   const company = companies.find((c) => c.id === id)
 
@@ -50,7 +56,6 @@ function CompanyDetails() {
   }
 
   const companyLeads = leads.filter((l) => l.company === company.name)
-  const companyContacts = contactsByCompany.find((c) => c.company === company.name)?.contacts ?? []
   const companyProposals = proposals.filter((p) => p.company === company.name)
   const companyProjects = projects.filter((p) => p.client === company.name)
   const primaryContact = companyContacts[0]

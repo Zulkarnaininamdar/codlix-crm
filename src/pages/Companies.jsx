@@ -4,13 +4,14 @@ import PageHeader from '../components/common/PageHeader.jsx'
 import Badge from '../components/common/Badge.jsx'
 import TableFooter from '../components/common/TableFooter.jsx'
 import { statusTone } from '../components/common/statusTone.js'
-import { companies } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
 import '../components/common/PageHeader.css'
 import '../components/common/DataTable.css'
 
 const PAGE_SIZE = 8
 
 function Companies() {
+  const { items: companies } = useCrm('companies')
   const [page, setPage] = useState(1)
   const pageRows = companies.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 

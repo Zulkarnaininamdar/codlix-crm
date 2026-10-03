@@ -1,31 +1,61 @@
-import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import ChartTooltip from './ChartTooltip.jsx'
+import ChartEmpty from './ChartEmpty.jsx'
+import './LeadsBySourceChart.css'
 
-const data = [
-  { source: 'LinkedIn', value: 132 },
-  { source: 'Cold Email', value: 98 },
-  { source: 'Referral', value: 76 },
-  { source: 'Website', value: 54 },
-  { source: 'WhatsApp', value: 31 },
-]
+const palette = ['#2F6FE4', '#E1306C', '#14A800', '#FF4500', '#25D366', '#8B5CF6', '#9CA3AF']
 
-function LeadsBySourceChart() {
+/** `data` is [{ label, value }] where value is a lead count per source. */
+function LeadsBySourceChart({ data }) {
+  const total = data.reduce((sum, d) => sum + d.value, 0)
+  if (total === 0) return <ChartEmpty>No leads with a source yet.</ChartEmpty>
+
+  const sourceData = data.map((d, i) => ({
+    label: d.label,
+    value: Math.round((d.value / total) * 1000) / 10,
+    count: d.value,
+    color: palette[i % palette.length],
+  }))
+
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={data} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 0 }}>
-        <XAxis type="number" hide />
-        <YAxis
-          type="category"
-          dataKey="source"
-          width={92}
-          tickLine={false}
-          axisLine={false}
-          tick={{ fill: '#5b5b63', fontSize: 12.5 }}
-        />
-        <Tooltip cursor={{ fill: 'rgba(100,72,244,0.06)' }} content={<ChartTooltip formatter={(v) => `${v} leads`} />} />
-        <Bar dataKey="value" fill="#6448F4" radius={[0, 6, 6, 0]} barSize={14} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="leads-source">
+      <div className="leads-source__chart">
+        <ResponsiveContainer width="100%" height={200}>
+          <PieChart>
+            <Pie
+              data={sourceData}
+              dataKey="value"
+              nameKey="label"
+              innerRadius="68%"
+              outerRadius="100%"
+              paddingAngle={2}
+              cornerRadius={4}
+              stroke="none"
+            >
+              {sourceData.map((entry) => (
+                <Cell key={entry.label} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<ChartTooltip formatter={(v) => `${v}%`} />} />
+          </PieChart>
+        </ResponsiveContainer>
+
+        <div className="leads-source__center">
+          <span className="leads-source__total">{total.toLocaleString()}</span>
+          <span className="leads-source__total-label">Total Leads</span>
+        </div>
+      </div>
+
+      <ul className="leads-source__legend">
+        {sourceData.map((entry) => (
+          <li key={entry.label}>
+            <span className="leads-source__dot" style={{ background: entry.color }} />
+            <span className="leads-source__label">{entry.label}</span>
+            <span className="leads-source__value">{entry.value}%</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

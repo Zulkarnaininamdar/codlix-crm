@@ -12,54 +12,6 @@
   gap: 1rem;
 }
 
-.followups-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: #fff;
-  border: 1.5px solid #e4e7ec;
-  border-radius: 0.9rem;
-  padding: 0.9rem 1.1rem;
-  font-family: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.followups-stat:hover {
-  border-color: #d4d4d8;
-}
-
-.followups-stat.is-active {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(100, 72, 244, 0.1);
-}
-
-.followups-stat__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  flex: none;
-}
-
-.followups-stat__dot--danger { background: #dc2626; }
-.followups-stat__dot--warning { background: #d97706; }
-.followups-stat__dot--soft { background: var(--primary); }
-.followups-stat__dot--dark { background: #8a8a92; }
-
-.followups-stat__label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #6b6b73;
-  margin-right: auto;
-}
-
-.followups-stat__value {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #121214;
-}
-
 /* ---------------- Toolbar ---------------- */
 .followups-search {
   display: flex;

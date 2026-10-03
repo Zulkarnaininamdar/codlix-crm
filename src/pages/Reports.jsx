@@ -8,7 +8,9 @@ import { statusTone } from '../components/common/statusTone.js'
 import LeadsBySourceChart from '../components/dashboard/LeadsBySourceChart.jsx'
 import MonthlyRevenueChart from '../components/dashboard/MonthlyRevenueChart.jsx'
 import LeadPipeline from '../components/dashboard/LeadPipeline.jsx'
-import { leads, followUps, employees, employeeStats } from '../data/mockData.js'
+import { useCrm } from '../hooks/useCrm.js'
+import { pipelineStages } from '../data/pipeline.js'
+import { useLeads } from '../context/LeadsContext.jsx'
 import {
   AnalyticsIcon,
   EmployeesIcon,
@@ -23,14 +25,6 @@ import '../components/common/Form.css'
 import '../components/common/DataTable.css'
 import './Reports.css'
 
-const filterOptions = {
-  employee: employees.map((e) => e.name),
-  country: [...new Set(leads.map((l) => l.country))],
-  industry: [...new Set(leads.map((l) => l.industry))],
-  service: [...new Set(leads.map((l) => l.service))],
-  source: [...new Set(leads.map((l) => l.source))],
-}
-
 const reportCards = [
   { key: 'source', title: 'Lead Source Report', icon: LeadsIcon, description: 'Where your leads are coming from this month.' },
   { key: 'performance', title: 'Employee Performance', icon: EmployeesIcon, description: 'Deals closed per team member.' },
@@ -42,6 +36,8 @@ const reportCards = [
 ]
 
 function Reports() {
+  const { leads, employees } = useLeads()
+  const { items: followUps } = useCrm('follow-ups')
   const [filters, setFilters] = useState({ date: '', employee: '', country: '', industry: '', service: '', source: '' })
   const [open, setOpen] = useState(null)
 
@@ -49,12 +45,30 @@ function Reports() {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
-  const employeePerformanceData = employees.map((e) => ({ name: e.name.split(' ')[0], won: employeeStats[e.id].won }))
+  const filterOptions = {
+    employee: employees.map((e) => e.name),
+    country: [...new Set(leads.map((l) => l.country).filter(Boolean))],
+    industry: [...new Set(leads.map((l) => l.industry).filter(Boolean))],
+    service: [...new Set(leads.map((l) => l.service).filter(Boolean))],
+    source: [...new Set(leads.map((l) => l.source).filter(Boolean))],
+  }
+
+  const employeePerformanceData = employees.map((e) => ({
+    name: e.name.split(' ')[0],
+    won: leads.filter((l) => l.assignedTo === e.id && l.status === 'Won').length,
+  }))
   const lostLeads = leads.filter((l) => l.status === 'Lost')
   const pipelineCounts = leads.reduce((acc, l) => {
     acc[l.status] = (acc[l.status] || 0) + 1
     return acc
   }, {})
+  const sourceData = Object.entries(
+    leads.reduce((acc, l) => {
+      if (l.source) acc[l.source] = (acc[l.source] || 0) + 1
+      return acc
+    }, {})
+  ).map(([label, value]) => ({ label, value }))
+  const funnelStages = pipelineStages.map((stage) => ({ label: stage, value: pipelineCounts[stage] ?? 0 }))
 
   return (
     <div className="reports-page">
@@ -123,7 +137,7 @@ function Reports() {
       </div>
 
       <Modal open={open === 'source'} onClose={() => setOpen(null)} title="Lead Source Report" width="640px">
-        <LeadsBySourceChart />
+        <LeadsBySourceChart data={sourceData} />
       </Modal>
 
       <Modal open={open === 'performance'} onClose={() => setOpen(null)} title="Employee Performance" width="640px">
@@ -138,11 +152,11 @@ function Reports() {
       </Modal>
 
       <Modal open={open === 'funnel'} onClose={() => setOpen(null)} title="Sales Funnel" width="720px">
-        <LeadPipeline />
+        <LeadPipeline stages={funnelStages} />
       </Modal>
 
       <Modal open={open === 'revenue'} onClose={() => setOpen(null)} title="Revenue Report" width="640px">
-        <MonthlyRevenueChart />
+        <MonthlyRevenueChart data={[]} />
       </Modal>
 
       <Modal open={open === 'pipeline'} onClose={() => setOpen(null)} title="Pipeline Report" width="480px">
